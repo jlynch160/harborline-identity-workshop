@@ -108,6 +108,7 @@ export function createRemoteSession() {
   root.querySelector('.lab-tabs').addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const ids=['guide','vm','info'];let i=ids.indexOf(labTab);i=e.key==='Home'?0:e.key==='End'?2:(i+(e.key==='ArrowRight'?1:2))%3;selectLabTab(ids[i]);root.querySelector(`[data-lab-tab="${ids[i]}"]`).focus();});
   function toggleGuide(show) {
     guide.hidden = !show;
+    root.dataset.guideOpen = String(show);
     guideButton.setAttribute('aria-expanded', String(show));
     guideButton.textContent = show ? 'Hide guide' : 'Show guide';
     if (show) { help.hidden = true; guide.querySelector('button').focus(); }
