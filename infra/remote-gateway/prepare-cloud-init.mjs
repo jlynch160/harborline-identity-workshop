@@ -13,7 +13,7 @@ const caddy=`${hostname} {
       disable_http_challenge
     }
   }
-  header Content-Security-Policy "frame-ancestors 'self' https://harborline-identity-workshop.sagitta107.chatgpt.site"
+  header Content-Security-Policy "frame-ancestors 'self' https://harborline-identity-workshop.sagitta107.chatgpt.site https://kind-beach-0ba2dc30f.6.azurestaticapps.net"
   header Referrer-Policy "no-referrer"
   header X-Content-Type-Options "nosniff"
   header Strict-Transport-Security "max-age=31536000"

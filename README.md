@@ -22,3 +22,14 @@ The presenter view (`?view=presenter`) follows the audience view using same-orig
 Run `npm run check` for JavaScript syntax. Serve the `dist` directory over HTTP. Rehearse all external links with the correct tenant session before the client workshop. Source details conflict in places; the caution notes preserve those distinctions. No current tenant state has been independently verified by this site.
 
 Deployment uses Sites. The workshop is public at the user's request; the gateway requires separate authentication.
+
+
+## Azure hosting and GitHub
+
+- Repository: https://github.com/sagitta414/harborline-identity-workshop (private).
+- Azure site: https://kind-beach-0ba2dc30f.6.azurestaticapps.net (public).
+- Azure resource: `harborline-identity-workshop`, Free SKU, resource group `RG-HARBORLINE-LAB`.
+- Pushing `main` runs `.github/workflows/azure-site.yml`: validate and deploy only `dist/`.
+- The deployment credential is held in the GitHub Actions secret `AZURE_STATIC_WEB_APPS_API_TOKEN`; never commit its value.
+- Gateway framing permits this exact Azure origin and the existing Sites origin. Windows and gateway sign-in remain required.
+- `.private/` is excluded from source control and deployment. The existing Sites publication remains available separately.
