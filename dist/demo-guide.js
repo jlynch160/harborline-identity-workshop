@@ -1,3 +1,4 @@
+import {companyStories} from './company-playbooks.js';
 import {cases} from './workshop.js';
 import {userAccount,userMoments} from './perspectives.js';
 
@@ -167,7 +168,7 @@ const highlights = {
 
 export function buildDemoGuide(p,index,isUser){
  const m=p.moments[index], [ids,admin]=guides[p.id][index], account=userAccount(p), u=userMoments[p.id][index];
- return {name:p.name,time:m.time,title:m.title,why:m.body,perspective:isUser?'User view':'Admin view',job:p.job,story:p.intro,
+ return {company:companyStories[p.id],name:p.name,time:m.time,title:m.title,why:m.body,perspective:isUser?'User view':'Admin view',job:p.job,story:p.intro,
   account,domain:account.split('@')[1],cases:ids.map(id=>cases.find(c=>c.id===id)).filter(Boolean),caution:p.caution,question:p.question,evidence:m.evidence,
   highlights:highlights[p.id][index],admin, user:[
    s(`Inside the VM, open ${p.name}’s separate browser profile or a new InPrivate window. Open myapplications.microsoft.com and check the account menu. Use ${account} when asked to sign in.`,`${p.name}’s experience must be shown with the persona identity, separate from the administrator and Windows desktop logins.`,`Use the existing private credential and configured MFA method. For Sam’s federation story, follow HarborPass; do not substitute his workforce account. For leaver stories, denial may be the correct result.`),
