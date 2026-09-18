@@ -26,6 +26,7 @@ export function createRemoteSession() {
     <header class="remote-toolbar">
       <div class="remote-heading"><span class="eyebrow">Real Entra · remote desktop</span><h2 id="remote-title">Your Entra workspace</h2></div>
       <div class="remote-controls">
+        <button class="outline remote-guide-toggle" type="button" data-remote="guide" aria-expanded="false" aria-controls="remote-guide">Steps &amp; why</button>
         <button class="outline" type="button" data-remote="focus" disabled>Focus desktop</button>
         <button class="outline" type="button" data-remote="expand">Full screen</button>
         <button class="quiet" type="button" data-remote="disconnect" disabled>Disconnect</button>
@@ -33,6 +34,7 @@ export function createRemoteSession() {
       </div>
     </header>
     <div class="remote-context"><span id="remote-context-label"></span><span class="remote-status" id="remote-status" role="status">Connection not configured</span></div>
+    <div class="remote-stage">
     <div class="remote-display" id="remote-display">
       <div class="remote-welcome" id="remote-welcome">
         <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="6" y="7" width="36" height="26" rx="3"/><path d="M24 33v9m-9 0h18m-11-24 7 4-7 4z"/></svg>
@@ -44,6 +46,12 @@ export function createRemoteSession() {
       </div>
     </div>
     <footer class="remote-footer"><span id="remote-help">Sign in to the remote desktop, then open Microsoft Entra in its browser.</span><div class="remote-footer-actions"><a class="quiet" id="remote-direct" target="_blank" rel="noopener noreferrer" hidden>Open in separate tab ↗</a><button class="quiet" type="button" data-remote="help">Session help</button></div></footer>
+    <aside class="remote-guide" id="remote-guide" aria-labelledby="remote-guide-title" hidden>
+      <header class="remote-guide-header"><div><span class="eyebrow">YOUR DEMO COMPANION</span><h3 id="remote-guide-title">Steps &amp; why</h3></div><button class="quiet" type="button" data-remote="guide-close" aria-label="Close steps and why">✕</button></header>
+      <div class="remote-guide-content" id="remote-guide-content"></div>
+      <div class="remote-guide-foot">Follow the selected story moment. Check each result in your tenant.</div>
+    </aside>
+    </div>
     <div class="remote-help" id="remote-help-panel" hidden>
       <h3>Using your Entra workspace</h3>
       <p>Sign in to the protected gateway and your Windows demo desktop. Open Edge on that desktop and sign in to Entra normally.</p>
@@ -63,6 +71,17 @@ export function createRemoteSession() {
   const status = root.querySelector('#remote-status');
   const welcome = root.querySelector('#remote-welcome');
   const help = root.querySelector('#remote-help-panel');
+  // Keep the footer outside the split stage, without touching the desktop node.
+  root.querySelector('.remote-stage').after(root.querySelector('.remote-footer'));
+  const guide = root.querySelector('#remote-guide');
+  const guideButton = root.querySelector('[data-remote="guide"]');
+  function toggleGuide(show) {
+    guide.hidden = !show;
+    guideButton.setAttribute('aria-expanded', String(show));
+    if (show) { help.hidden = true; guide.querySelector('button').focus(); }
+    else if (frame) focusDesktop();
+    else guideButton.focus();
+  }
   const expandButton = root.querySelector('[data-remote="expand"]');
   const disconnectButton = root.querySelector('[data-remote="disconnect"]');
   const connectButton = root.querySelector('[data-remote="connect"]');
@@ -174,6 +193,8 @@ export function createRemoteSession() {
     if (action === 'connect') connect();
     if (action === 'disconnect') disconnect();
     if (action === 'focus') {help.hidden = true;focusDesktop();}
+    if (action === 'guide') toggleGuide(guide.hidden);
+    if (action === 'guide-close') toggleGuide(false);
     if (action === 'help') {
       help.hidden = !help.hidden;
       if (help.hidden) focusDesktop();
@@ -190,6 +211,7 @@ export function createRemoteSession() {
       e.preventDefault();
       e.stopImmediatePropagation();
       if (!help.hidden) {help.hidden = true;focusDesktop();}
+      else if (!guide.hidden) toggleGuide(false);
       else if (root.classList.contains('remote-maximized')) {root.classList.remove('remote-maximized');syncFullscreen();}
       else void close();
     }
@@ -199,7 +221,11 @@ export function createRemoteSession() {
       else if (controls.length && !e.shiftKey && document.activeElement === controls.at(-1)) {e.preventDefault();controls[0].focus();}
     }
   }, true);
-  return {open, isOpen: () => active, configured: () => Boolean(gateway), setContext(name, moment, perspective = 'Admin view', account = 'Harborline administrator') {
+  const escapeGuide = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+  return {open, isOpen: () => active, configured: () => Boolean(gateway), setGuide({name, time, title, why, steps, evidence, perspective}) {
+    root.querySelector('#remote-guide-content').innerHTML = `<div class="guide-moment"><span class="guide-perspective">${escapeGuide(perspective)}</span><p class="guide-person">${escapeGuide(time)} · ${escapeGuide(name)}</p><h4>${escapeGuide(title)}</h4></div><section class="guide-why"><h4>Why this matters</h4><p>${escapeGuide(why)}</p></section><section class="guide-actions"><h4>Walk through it</h4><ol>${steps.map(step => `<li>${escapeGuide(step)}</li>`).join('')}</ol></section><section class="guide-proof"><h4>What to verify</h4><p>${escapeGuide(evidence)}</p></section>`;
+    root.querySelector('#remote-guide-content').scrollTop = 0;
+  }, setContext(name, moment, perspective = 'Admin view', account = 'Harborline administrator') {
     root.querySelector('#remote-context-label').textContent = `${perspective} · ${name} · ${moment}`;
     root.querySelector('#remote-help').textContent = `Use the ${perspective === 'User view' ? 'separate persona' : 'administrator'} browser profile: ${account}. This view does not change the signed-in account.`;
   }};
