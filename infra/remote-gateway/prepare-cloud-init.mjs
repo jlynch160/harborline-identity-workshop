@@ -9,7 +9,9 @@ const bootstrap=await readFile(new URL('bootstrap.sh',import.meta.url),'utf8');
 const seed=await readFile(new URL('seed.py',import.meta.url),'utf8');
 const caddy=`${hostname} {
   tls {
-    issuer acme { disable_http_challenge }
+    issuer acme {
+      disable_http_challenge
+    }
   }
   header Content-Security-Policy "frame-ancestors 'self' https://harborline-identity-workshop.sagitta107.chatgpt.site"
   header Referrer-Policy "no-referrer"

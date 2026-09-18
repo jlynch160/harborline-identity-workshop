@@ -6,9 +6,9 @@ param subnetId string
 param sshPublicKey string
 @description('Unique Azure DNS label for the protected gateway.')
 param dnsLabel string
-param location string = resourceGroup().location
+param location string = 'eastus2'
 param vmName string = 'hl-demo-gateway'
-param vmSize string = 'Standard_B2s'
+param vmSize string = 'Standard_D2s_v3'
 @description('Cloud-init produced by prepare-cloud-init.mjs. Contains no user passwords.')
 param cloudInit string
 

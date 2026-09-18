@@ -1,6 +1,6 @@
 # Real Entra remote session: deployment plan
 
-Prepared, not deployed. The website panel remains explicitly unconfigured until the gateway URL is supplied and the end-to-end connection passes rehearsal.
+Azure infrastructure created with user approval on 18 September 2026 (UTC). Gateway initialization and live checks must pass before enabling the website connection. Signed-in Windows and Entra rehearsal requires the presenter's credentials and MFA.
 
 ## Discovered existing lab
 
@@ -12,9 +12,12 @@ Prepared, not deployed. The website panel remains explicitly unconfigured until 
 
 ## Proposed additional resources
 
-One Linux `Standard_B2s` gateway VM in East US 2, one 32-GB standard SSD, one static public IP, one NIC and a gateway-specific NSG in the existing lab subnet. Only HTTPS 443 is allowed inbound by the new NSG. RDP remains on the existing private network. The existing Windows VM must be started for demos. These resources incur Azure charges; starting them is a separate activation step.
+One Linux `Standard_D2s_v3` gateway VM in East US 2, one 32-GB standard SSD, one static public IP, one NIC and a gateway-specific NSG in the existing lab subnet. The B2 family was unavailable for this subscription; D2s_v3 passed Azure validation and creation. Only HTTPS 443 is allowed inbound by the new NSG. RDP remains on the existing private network. The existing Windows VM was started with approval. Both running VMs incur Azure charges.
 
-`main.bicep` does not change the lab subnet, existing VM or its firewall. Existing NSG policy must allow HTTPS to the gateway and private RDP to the target. No public RDP or SSH rule is added.
+Gateway: `https://harborline-demo-gateway.eastus2.cloudapp.azure.com/guacamole/`.
+Resource group location is West US 3; network and VMs are East US 2. Always set the deployment location explicitly.
+
+`main.bicep` creates only the gateway resources. Activation additionally created `AllowHttpsToWorkshopGateway` at priority 120 on `hl-lab-nsg`, allowing Internet TCP 443 only to `10.40.1.6`. The pre-existing HTTPS rule targeted the federation server at `10.40.1.10`. No public RDP or SSH rule was added. Preserve the gateway private address or update this scoped rule if the NIC is replaced.
 
 ## Preparation and deployment
 
@@ -23,7 +26,7 @@ One Linux `Standard_B2s` gateway VM in East US 2, one 32-GB standard SSD, one st
 3. Run an ARM/Bicep validation and what-if for `main.bicep` in the lab resource group with that subnet, DNS label, public key and generated cloud-init.
 4. Deploy the approved plan, then verify cloud-init completion. Passwords are generated on the gateway in root-readable files, not ARM parameters, Git or the public workshop. Default `guacadmin` credentials are replaced before the web service starts.
 5. Retrieve the presenter credential privately with Azure Run Command. The user enrolls the gateway’s TOTP and enters their own Windows credentials when NLA prompts. No Windows password is stored in the connection.
-6. Verify the Windows RDP certificate through an authenticated Azure VM channel and install appropriate trust/name matching in guacd. Do not enable `ignore-cert`, disable NLA, or weaken tenant Conditional Access to make the session work. This certificate setup remains a required deployment task.
+6. Verify the Windows RDP certificate through an authenticated Azure VM channel, then run `activate.py` on the gateway to compare the private RDP peer and pin its SHA-256 certificate fingerprint. Do not enable `ignore-cert`, disable NLA, or weaken tenant Conditional Access. Reverify and update the pin when the Windows certificate rotates.
 7. Verify TLS, gateway authentication, MFA, deny-by-default access, and frame policy. The gateway permits only itself and the exact public workshop origin as frame ancestors. Microsoft portal headers remain unchanged because Entra runs as a normal top-level page in the remote browser.
 8. Set `dist/remote-config.js` to the returned HTTPS gateway URL (no credentials, query tokens or passwords) and deploy the workshop update.
 9. Rehearse: log into the remote desktop, open Edge and Entra, complete MFA, navigate the intended tenant, expand fullscreen, exit fullscreen, return to a story, reopen the same session, then sign out and disconnect. Confirm the presenter does not see administrative gateway management permissions.
@@ -34,7 +37,7 @@ One Linux `Standard_B2s` gateway VM in East US 2, one 32-GB standard SSD, one st
 - Some passkey/Windows Hello and device-compliance scenarios cannot be reproduced through a remote session. Confirm the tenant permits this VM; preserve its access policies.
 - Returning to the story hides the same frame. Disconnecting removes the browser view but does not automatically sign out Windows/Entra or deallocate Azure resources.
 - Do not expose the database, guacd, administrative credential files or default accounts. No session recording is configured.
-- The prepared container stack has not yet run on an actual gateway. Deployment validation and live checks remain necessary.
+- The container stack is running. HTTPS returned 200 with the exact workshop frame ancestor policy, gateway login rendered, TOTP and brute-force protection loaded, and private RDP certificate verification passed. Signed-in desktop and Entra behavior still require the presenter's authentication and rehearsal.
 
 ## Sources
 
