@@ -1,4 +1,4 @@
-import {caseArchitecture} from './architecture.js?v=20260918-architecture';
+import {caseArchitecture} from './architecture.js?v=20260918-topology';
 import {companyPlaybook,companyStories} from './company-playbooks.js';
 import {vendorConfig} from './vendor-config.js';
 import {cases} from './workshop.js';
