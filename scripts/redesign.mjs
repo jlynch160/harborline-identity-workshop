@@ -1,0 +1,20 @@
+import fs from 'node:fs';
+let s=fs.readFileSync('dist/app.js','utf8');
+s=s.replace("const person=()=>", "const palette=['#b9f67a','#80ddff','#c6adff','#ffcc82','#ffa3a7','#80e1cf'];\nconst tabIcons={story:'signal',architecture:'grid',setup:'grid',user:'screen',live:'play',evidence:'signal',ai:'arrow'};\nconst person=()=>");
+s=s.replace('<div class="shell ${state.present?', '<div class="shell" data-person="${p.id}" style="--accent:${palette[state.person]}"><div class="experience ${state.present?');
+// Close the new outer theme wrapper before the modal.
+s=s.replace('</main></div></div><dialog id="modal"','</main></div></div></div><dialog id="modal"');
+s=s.replace('<span class="brand-mark">H</span>harborline<span><small>WITH MAJORKEY</small></span>', '<span class="brand-mark">h.</span><span class="brand-name">harborline<small>IDENTITY EXPERIENCE · MAJORKEY</small></span>');
+s=s.replace('<div class="eyebrow">A day in the life</div><p>Six people. One connected story.</p>', '<div class="eyebrow">The human side of identity</div><h2>A day<br>in the life<span>.</span></h2><p>Six people. Every identity moment.</p>');
+s=s.replace('<span class="avatar">${x.initials}</span>', '<span class="avatar" style="--person-color:${palette[i]}">${x.initials}</span>');
+s=s.replace('<span class="reference">Guided lab · source 17 Sep 2026</span>', '<button class="reference" data-action="agenda">${icon("clock")} 8-hour workshop</button>');
+s=s.replace('<section class="story-top"><div><h1>', '<section class="story-top"><div class="chapter-intro"><div class="hero-kicker"><span>THE HARBORLINE STORIES</span><span>CHAPTER 0${state.person+1}</span></div><h1>');
+s=s.replace('<div class="person-card"><div class="eyebrow">Meet the person</div><h2>${escape(p.name)}</h2><p>${escape(p.job)}<br>${escape(p.company)}</p><span class="persona-tag">${p.cases.length} connected use cases</span></div>', '<div class="person-card"><div class="identity-card-top"><span>HARBORLINE / PEOPLE</span><span>0${state.person+1}</span></div><div class="identity-monogram" aria-hidden="true">${p.initials}</div><div class="identity-card-bottom"><div><div class="eyebrow">Meet the person</div><h2>${escape(p.name)}</h2><p>${escape(p.job)}</p></div><span class="persona-tag">${p.cases.length}<small>use cases</small></span></div><div class="identity-context">${escape(p.company)}</div></div>');
+s=s.replace('<nav class="journey-strip"','<div class="journey-heading"><span class="eyebrow">Follow ${escape(p.name.split(" ")[0])}’s day</span><span>${state.moment+1} / ${p.moments.length} moments</span></div><nav class="journey-strip"');
+s=s.replace('data-value="${id}">${label}</button>', 'data-value="${id}">${icon(tabIcons[id])}<span>${label}</span></button>');
+s=s.replace('<button class="primary" data-action="tab" data-value="setup">Show the admin side ${icon(\'arrow\')}</button>', '<div class="story-actions"><button class="primary" data-action="tab" data-value="setup">Admin perspective ${icon(\'arrow\')}</button><button class="outline" data-action="tab" data-value="user">User perspective ${icon(\'screen\')}</button></div>');
+s=s.replace('<div class="signal-label">${icon(\'signal\')} The identity moment</div>', '<div class="signal-label">${icon(\'signal\')} Behind this moment</div>');
+s=s.replace('<div class="eyebrow">Bring it back to the client</div>', '<div class="eyebrow">A question for the room</div>');
+fs.writeFileSync('dist/app.js',s);
+let html=fs.readFileSync('dist/index.html','utf8').replace('<link rel="stylesheet" href="./remote-session.css">','<link rel="stylesheet" href="./remote-session.css"><link rel="stylesheet" href="./experience.css">');
+fs.writeFileSync('dist/index.html',html);
