@@ -1,0 +1,22 @@
+#remote-workspace .coach-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px;color:#694381;margin-bottom:16px;letter-spacing:.03em}
+#remote-workspace .coach-heading strong{white-space:nowrap;color:#342043}
+#remote-workspace .coach-phases{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:22px}
+#remote-workspace .coach-phases button{padding:7px 9px;border-radius:7px;border:1px solid #d9cfe3;background:#fff;color:#604475;font-size:12px}
+#remote-workspace .coach-phases button[aria-pressed=true]{background:#533174;color:#fff;border-color:#533174}
+#remote-workspace .coach-phase{font-size:12px;font-weight:650;color:#684480;display:block;margin-bottom:18px}
+#remote-workspace .coach-card h4{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#663984;margin:18px 0 8px}
+#remote-workspace .coach-card p{font-size:15px;line-height:1.7;margin:0;color:#32243e}
+#remote-workspace .coach-say{padding:1px 15px 16px;background:#ede7f4;border-left:3px solid #9566bc;border-radius:0 8px 8px 0;margin:18px 0}
+#remote-workspace .coach-desktop{display:block;width:100%;background:#253f36;color:#d0ffeb;border:1px solid #416e5b;padding:12px;border-radius:8px;font-size:14px;margin:24px 0 15px}
+#remote-workspace .coach-check{display:flex;align-items:center;gap:9px;font-size:14px;color:#483151;margin-bottom:18px}
+#remote-workspace .coach-check input{width:18px;height:18px;accent-color:#633c86}
+#remote-workspace .coach-navigation{display:flex;gap:8px;justify-content:space-between}
+#remote-workspace .coach-navigation button,#remote-workspace .coach-rehearsal button{font-size:13px;background:#fff;border:1px solid #d4c5df;border-radius:7px;padding:10px;color:#583373}
+#remote-workspace .coach-navigation button:last-child{background:#633c86;color:white}
+#remote-workspace .coach-navigation button:disabled{opacity:.4;cursor:default}
+#remote-workspace .coach-note,#remote-workspace .coach-rehearsal p{font-size:12px;line-height:1.6;color:#74647f;margin:14px 0}
+#remote-workspace .coach-rehearsal{border-top:1px solid #dcd1e5;margin-top:22px;padding-top:16px}
+#remote-workspace .coach-rehearsal summary{font-size:14px;color:#53366b;cursor:pointer}
+#remote-workspace .coach-rehearsal ol{padding-left:20px;font-size:14px;line-height:1.7;color:#52415f}
+#remote-workspace[data-lab-tab=run] .remote-guide-foot{display:none}
+#remote-workspace .lab-tabs button{padding:11px 5px}

@@ -1,3 +1,4 @@
+import {installLiveCoach} from './live-coach.js';
 import {focusRemoteWindow,watchRemoteFocus} from './desktop-focus.js';
 import {installDualStage} from './dual-stage.js';
 import {remoteConfig} from './remote-config.js';
@@ -51,7 +52,7 @@ export function createRemoteSession() {
     <footer class="remote-footer"><span id="remote-help">Sign in to the remote desktop, then open Microsoft Entra in its browser.</span><div class="remote-footer-actions"><a class="quiet" id="remote-direct" target="_blank" rel="noopener noreferrer" hidden>Open in separate tab ↗</a><button class="quiet" type="button" data-remote="help">Session help</button></div></footer>
     <aside class="remote-guide" id="remote-guide" hidden aria-labelledby="remote-guide-title">
       <header class="remote-guide-header"><div><span class="eyebrow">YOUR DEMO COMPANION</span><h3 id="remote-guide-title">Steps &amp; why</h3></div><button class="quiet" type="button" data-remote="guide-close" aria-label="Close steps and why">✕</button></header>
-      <div class="lab-tabs" role="tablist" aria-label="Lab companion"><button role="tab" id="lab-tab-guide" data-lab-tab="guide" aria-selected="true" aria-controls="lab-panel-guide">Guide</button><button role="tab" id="lab-tab-vm" data-lab-tab="vm" aria-selected="false" aria-controls="lab-panel-vm" tabindex="-1">VM</button><button role="tab" id="lab-tab-info" data-lab-tab="info" aria-selected="false" aria-controls="lab-panel-info" tabindex="-1">Lab info</button></div>
+      <div class="lab-tabs" role="tablist" aria-label="Lab companion"><button role="tab" id="lab-tab-run" data-lab-tab="run" aria-selected="true" aria-controls="lab-panel-run">Walkthrough</button><button role="tab" id="lab-tab-guide" data-lab-tab="guide" aria-selected="false" tabindex="-1" aria-controls="lab-panel-guide">Guide</button><button role="tab" id="lab-tab-vm" data-lab-tab="vm" aria-selected="false" aria-controls="lab-panel-vm" tabindex="-1">VM</button><button role="tab" id="lab-tab-info" data-lab-tab="info" aria-selected="false" aria-controls="lab-panel-info" tabindex="-1">Lab info</button></div>
       <div class="lab-picker"><label for="lab-moment">Day in the life</label><select id="lab-moment"></select></div>
       <div class="remote-guide-content" id="remote-guide-content"></div>
       <div class="remote-guide-foot"><div class="lab-progress-label"><span>Steps checked · this moment</span><strong id="lab-progress-count">0 / 7</strong></div><progress id="lab-progress" value="0" max="7" aria-label="Manually checked steps"></progress><div class="lab-pagination"><button type="button" data-remote="lab-prev">← Previous</button><span id="lab-page"></span><button type="button" data-remote="lab-next">Next →</button></div><small>Progress reflects your checklist, not tenant verification.</small></div>
@@ -74,6 +75,7 @@ export function createRemoteSession() {
   let active = false;
   let loadTimer = null;
   let gateway = null;
+  const coach=installLiveCoach(root,side=>{dual.setLayout(side);if(side==='admin'){connect();preferredSide='admin';focusRemoteWindow(frame);}else{dual.connect();dual.focus();}});
   const app = document.getElementById('app');
   const status = root.querySelector('#remote-status');
   const welcome = root.querySelector('#remote-welcome');
@@ -84,7 +86,7 @@ export function createRemoteSession() {
   const guideButton = root.querySelector('[data-remote="guide"]');
   const labMoments = people.flatMap((p,personIndex)=>p.moments.map((m,momentIndex)=>({name:p.name,title:m.short,personIndex,momentIndex})));
   const checkedSteps = new Map();
-  let guideKey = '', labIndex = 0, labTab = 'guide';
+  let guideKey = '', labIndex = 0, labTab = 'run';
   const momentSelect = root.querySelector('#lab-moment');
   labMoments.forEach((m,i)=>{const option=document.createElement('option');option.value=i;option.textContent=`${m.name} · ${m.title}`;momentSelect.append(option);});
   function navigateLab(index) {
@@ -92,7 +94,7 @@ export function createRemoteSession() {
     document.dispatchEvent(new CustomEvent('workshop-lab-navigate',{detail:m}));
   }
   function selectLabTab(tab) {
-    labTab=tab;
+    labTab=tab;root.dataset.labTab=tab;
     root.querySelectorAll('[data-lab-tab]').forEach(button=>{const selected=button.dataset.labTab===tab;button.setAttribute('aria-selected',String(selected));button.tabIndex=selected?0:-1;});
     root.querySelectorAll('[data-lab-panel]').forEach(panel=>{panel.hidden=panel.dataset.labPanel!==tab;});
   }
@@ -105,7 +107,7 @@ export function createRemoteSession() {
     if(e.target===momentSelect)navigateLab(Number(momentSelect.value));
     if(e.target.matches('[data-lab-step]')){const set=checkedSteps.get(guideKey)||new Set();e.target.checked?set.add(e.target.dataset.labStep):set.delete(e.target.dataset.labStep);checkedSteps.set(guideKey,set);updateProgress();}
   });
-  root.querySelector('.lab-tabs').addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const ids=['guide','vm','info'];let i=ids.indexOf(labTab);i=e.key==='Home'?0:e.key==='End'?2:(i+(e.key==='ArrowRight'?1:2))%3;selectLabTab(ids[i]);root.querySelector(`[data-lab-tab="${ids[i]}"]`).focus();});
+  root.querySelector('.lab-tabs').addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const ids=['run','guide','vm','info'];let i=ids.indexOf(labTab);i=e.key==='Home'?0:e.key==='End'?3:(i+(e.key==='ArrowRight'?1:3))%4;selectLabTab(ids[i]);root.querySelector(`[data-lab-tab="${ids[i]}"]`).focus();});
   function toggleGuide(show) {
     guide.hidden = !show;
     root.dataset.guideOpen = String(show);
@@ -222,6 +224,7 @@ export function createRemoteSession() {
     root.hidden = false;
     app.inert = true;
     document.body.classList.add('remote-open');
+    if(!frame&&!dual.connected()){toggleGuide(true);selectLabTab('run');}
     if (frame && help.hidden) focusDesktop();
     else root.querySelector('[data-remote="close"]').focus();
   }
@@ -287,12 +290,12 @@ export function createRemoteSession() {
       <details class="guide-section"><summary>Microsoft reference guides</summary><div class="guide-references"><a href="https://learn.microsoft.com/en-us/entra/id-governance/what-are-lifecycle-workflows" target="_blank" rel="noopener noreferrer">Lifecycle workflows ↗</a><a href="https://learn.microsoft.com/en-us/entra/id-governance/entitlement-management-request-access" target="_blank" rel="noopener noreferrer">Request an access package ↗</a><a href="https://learn.microsoft.com/en-us/entra/identity/authentication/howto-authentication-temporary-access-pass" target="_blank" rel="noopener noreferrer">Temporary Access Pass ↗</a><a href="https://learn.microsoft.com/en-us/entra/identity/monitoring-health/concept-sign-in-log-activity-details" target="_blank" rel="noopener noreferrer">Read sign-in evidence ↗</a><a href="https://learn.microsoft.com/en-us/autopilot/profiles" target="_blank" rel="noopener noreferrer">Autopilot profiles ↗</a></div></details>`;
     const content=root.querySelector('#remote-guide-content');
     const children=[...content.children],panels={};
-    for(const id of ['guide','vm','info']){const panel=document.createElement('div');panel.id=`lab-panel-${id}`;panel.dataset.labPanel=id;panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby',`lab-tab-${id}`);panel.tabIndex=0;panels[id]=panel;content.append(panel);}
+    for(const id of ['run','guide','vm','info']){const panel=document.createElement('div');panel.id=`lab-panel-${id}`;panel.dataset.labPanel=id;panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby',`lab-tab-${id}`);panel.tabIndex=0;panels[id]=panel;content.append(panel);}
     children.forEach(child=>{const title=child.querySelector('summary')?.textContent||'';const target=title==='Sign-in & preparation'?'vm':title.startsWith('Use cases')||title.startsWith('Presenter notes')||title.startsWith('Microsoft reference')?'info':'guide';panels[target].append(child);if(child.tagName==='DETAILS'&&target!=='guide')child.open=true;});
     panels.vm.insertAdjacentHTML('afterbegin','<div class="lab-panel-intro"><h4>Your lab environment</h4><p>The live desktop stays open as you read. Use Focus desktop to return keyboard input to Windows.</p></div>');
     panels.info.insertAdjacentHTML('afterbegin','<div class="lab-panel-intro"><h4>Lab information</h4><p>Six people · 22 moments · 8-hour workshop</p></div>');
     guide.querySelectorAll('.guide-actions li').forEach((item,i)=>{const box=document.createElement('input');box.type='checkbox';box.dataset.labStep=String(i);box.checked=checkedSteps.get(guideKey)?.has(String(i))||false;box.setAttribute('aria-label',`Mark step complete: ${item.querySelector('.guide-do').textContent}`);item.prepend(box);});
-    selectLabTab(labTab);updateProgress();content.scrollTop=0;
+    coach.mount(panels.run,g);selectLabTab(labTab);updateProgress();content.scrollTop=0;
   }, setContext(name, moment, perspective = 'Admin view', account = 'Harborline administrator') {
     root.querySelector('#remote-context-label').textContent = `${perspective} · ${name} · ${moment}`;
     root.querySelector('#remote-help').textContent = `Use the ${perspective === 'User view' ? 'separate persona' : 'administrator'} browser profile: ${account}. This view does not change the signed-in account.`;

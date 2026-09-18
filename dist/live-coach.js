@@ -1,0 +1,27 @@
+// Presenter guidance only: no remote input, credentials, or tenant mutations.
+const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+export function buildRunSteps(g){return [
+ {phase:'Prepare',side:'admin',action:`Before sharing, open the administrator browser profile at entra.microsoft.com. In the user desktop, prepare ${g.account}. Keep the relevant tabs open in each desktop.`,why:`We will follow ${g.name} through ${g.title.toLowerCase()} and compare the controls with the experience.`,look:'Confirm the actual account and tenant in both browsers. Test typing, complete MFA privately, and check the scenario’s starting state.'},
+ ...g.admin.map(s=>({...s,phase:'Admin',side:'admin'})),
+ ...g.user.map(s=>({...s,phase:'User',side:'user'})),
+ {phase:'Proof',side:'admin',action:g.evidence,why:'This is the evidence behind the experience. Separate what was configured, what was proposed, and what actually happened.',look:'Match the user, application, event time and result. If evidence is missing, state what remains unverified.'},
+ {phase:'Reset',side:'user',action:'After the demonstration, close sensitive tabs and sign out of the persona’s application. Compare any changed assignments, attributes or policies with your recorded starting state. Restore only the changes approved for this rehearsal.',why:'A repeatable demonstration starts with a known state and ends with clear ownership of any changes.',look:'Recheck both browser profiles, prepare the next scenario’s tabs, and verify its starting state. Restarting this walkthrough does not reset Windows or Entra.'}
+ ];}
+export function installLiveCoach(root,showSide){
+ const runs=new Map();let key='',steps=[],host=null,guide=null;
+ function render(){if(!host)return;const state=runs.get(key),step=steps[state.index];
+ host.innerHTML=`<div class="coach-heading"><span>LIVE DEMO · ${escape(guide.name)}</span><strong>${state.index+1} / ${steps.length}</strong></div><nav class="coach-phases" aria-label="Walkthrough phases">${['Prepare','Admin','User','Proof','Reset'].map(phase=>`<button type="button" data-coach="phase" data-phase="${phase}" aria-pressed="${step.phase===phase}">${phase}</button>`).join('')}</nav><section class="coach-card" aria-live="polite"><span class="coach-phase">${step.phase} · ${step.side==='admin'?'Administrator':'User'} desktop</span><h4>Do this</h4><p>${escape(step.action)}</p><div class="coach-say"><h4>Say this</h4><p>${escape(step.why)}</p></div><h4>Look for</h4><p>${escape(step.look)}</p></section><button class="coach-desktop" type="button" data-coach="desktop">Show ${step.side==='admin'?'administrator':'user'} desktop ↗</button><label class="coach-check"><input type="checkbox" data-coach="check" ${state.checked.has(state.index)?'checked':''}> I checked this step</label><div class="coach-navigation"><button type="button" data-coach="previous" ${state.index===0?'disabled':''}>← Previous step</button><button type="button" data-coach="next" ${state.index===steps.length-1?'disabled':''}>Next step →</button></div><p class="coach-note">${state.checked.size} / ${steps.length} manually checked. Advancing the guide does not perform an action in Entra.</p><details class="coach-rehearsal"><summary>Prepare the next rehearsal</summary><ol><li>Record the intended account, tenant and starting access.</li><li>Open the scenario’s named blades in the admin browser; prepare the application in the user browser.</li><li>Rehearse the allowed result and any intentional denial.</li><li>Keep approved reset steps and fallback evidence ready.</li></ol><button type="button" data-coach="restart">Restart guide checklist</button><p>This clears this moment’s guide progress only. It does not reset either desktop or the tenant.</p></details>`;
+ }
+ root.addEventListener('click',e=>{const b=e.target.closest('[data-coach]');if(!b||!host)return;const state=runs.get(key),action=b.dataset.coach;
+  if(action==='desktop'){showSide(steps[state.index].side);return;}
+  if(action==='check')return;
+  if(action==='previous')state.index=Math.max(0,state.index-1);
+  if(action==='next')state.index=Math.min(steps.length-1,state.index+1);
+  if(action==='phase'){const index=steps.findIndex(s=>s.phase===b.dataset.phase);if(index<0)return;state.index=index;}
+  if(action==='restart'){state.index=0;state.checked.clear();}
+  render();host.closest('.remote-guide-content').scrollTop=0;
+  const next=action==='phase'?host.querySelector(`[data-phase="${b.dataset.phase}"]`):host.querySelector(`[data-coach="${action}"]`);(next&&!next.disabled?next:host.querySelector('[data-coach="desktop"]')).focus();
+ });
+ root.addEventListener('change',e=>{if(e.target.dataset.coach!=='check'||!host)return;const state=runs.get(key);e.target.checked?state.checked.add(state.index):state.checked.delete(state.index);host.querySelector('.coach-note').textContent=`${state.checked.size} / ${steps.length} manually checked. Advancing the guide does not perform an action in Entra.`;});
+ return {mount(container,g){host=container;guide=g;key=`${g.name}:${g.time}:${g.title}`;steps=buildRunSteps(g);if(!runs.has(key))runs.set(key,{index:0,checked:new Set()});render();}};
+}
