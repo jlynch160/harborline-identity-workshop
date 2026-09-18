@@ -1,4 +1,5 @@
 import {remoteConfig} from './remote-config.js';
+import {people} from './data.js';
 
 export function validateGateway(value) {
   if (!value) return null;
@@ -24,9 +25,9 @@ export function createRemoteSession() {
   root.setAttribute('aria-labelledby', 'remote-title');
   root.innerHTML = `
     <header class="remote-toolbar">
-      <div class="remote-heading"><span class="eyebrow">Real Entra · remote desktop</span><h2 id="remote-title">Your Entra workspace</h2></div>
+      <div class="remote-heading"><img src="./assets/majorkey-logo.svg" alt="MajorKey" width="120" height="24"><div><span class="eyebrow">IDENTITY IN ACTION · GUIDED LAB</span><h2 id="remote-title">Your Entra workspace</h2></div></div>
       <div class="remote-controls">
-        <button class="outline remote-guide-toggle" type="button" data-remote="guide" aria-expanded="false" aria-controls="remote-guide">Steps &amp; why</button>
+        <button class="outline remote-guide-toggle" type="button" data-remote="guide" aria-expanded="true" aria-controls="remote-guide">Hide guide</button>
         <button class="outline" type="button" data-remote="focus" disabled>Focus desktop</button>
         <button class="outline" type="button" data-remote="expand">Full screen</button>
         <button class="quiet" type="button" data-remote="disconnect" disabled>Disconnect</button>
@@ -46,10 +47,12 @@ export function createRemoteSession() {
       </div>
     </div>
     <footer class="remote-footer"><span id="remote-help">Sign in to the remote desktop, then open Microsoft Entra in its browser.</span><div class="remote-footer-actions"><a class="quiet" id="remote-direct" target="_blank" rel="noopener noreferrer" hidden>Open in separate tab ↗</a><button class="quiet" type="button" data-remote="help">Session help</button></div></footer>
-    <aside class="remote-guide" id="remote-guide" aria-labelledby="remote-guide-title" hidden>
+    <aside class="remote-guide" id="remote-guide" aria-labelledby="remote-guide-title">
       <header class="remote-guide-header"><div><span class="eyebrow">YOUR DEMO COMPANION</span><h3 id="remote-guide-title">Steps &amp; why</h3></div><button class="quiet" type="button" data-remote="guide-close" aria-label="Close steps and why">✕</button></header>
+      <div class="lab-tabs" role="tablist" aria-label="Lab companion"><button role="tab" id="lab-tab-guide" data-lab-tab="guide" aria-selected="true" aria-controls="lab-panel-guide">Guide</button><button role="tab" id="lab-tab-vm" data-lab-tab="vm" aria-selected="false" aria-controls="lab-panel-vm" tabindex="-1">VM</button><button role="tab" id="lab-tab-info" data-lab-tab="info" aria-selected="false" aria-controls="lab-panel-info" tabindex="-1">Lab info</button></div>
+      <div class="lab-picker"><label for="lab-moment">Day in the life</label><select id="lab-moment"></select></div>
       <div class="remote-guide-content" id="remote-guide-content"></div>
-      <div class="remote-guide-foot">Follow the selected story moment. Check each result in your tenant.</div>
+      <div class="remote-guide-foot"><div class="lab-progress-label"><span>Steps checked · this moment</span><strong id="lab-progress-count">0 / 7</strong></div><progress id="lab-progress" value="0" max="7" aria-label="Manually checked steps"></progress><div class="lab-pagination"><button type="button" data-remote="lab-prev">← Previous</button><span id="lab-page"></span><button type="button" data-remote="lab-next">Next →</button></div><small>Progress reflects your checklist, not tenant verification.</small></div>
     </aside>
     </div>
     <div class="remote-help" id="remote-help-panel" hidden>
@@ -75,9 +78,34 @@ export function createRemoteSession() {
   root.querySelector('.remote-stage').after(root.querySelector('.remote-footer'));
   const guide = root.querySelector('#remote-guide');
   const guideButton = root.querySelector('[data-remote="guide"]');
+  const labMoments = people.flatMap((p,personIndex)=>p.moments.map((m,momentIndex)=>({name:p.name,title:m.short,personIndex,momentIndex})));
+  const checkedSteps = new Map();
+  let guideKey = '', labIndex = 0, labTab = 'guide';
+  const momentSelect = root.querySelector('#lab-moment');
+  labMoments.forEach((m,i)=>{const option=document.createElement('option');option.value=i;option.textContent=`${m.name} · ${m.title}`;momentSelect.append(option);});
+  function navigateLab(index) {
+    const m=labMoments[index]; if(!m)return;
+    document.dispatchEvent(new CustomEvent('workshop-lab-navigate',{detail:m}));
+  }
+  function selectLabTab(tab) {
+    labTab=tab;
+    root.querySelectorAll('[data-lab-tab]').forEach(button=>{const selected=button.dataset.labTab===tab;button.setAttribute('aria-selected',String(selected));button.tabIndex=selected?0:-1;});
+    root.querySelectorAll('[data-lab-panel]').forEach(panel=>{panel.hidden=panel.dataset.labPanel!==tab;});
+  }
+  function updateProgress() {
+    const boxes=[...guide.querySelectorAll('[data-lab-step]')],done=boxes.filter(box=>box.checked).length;
+    root.querySelector('#lab-progress-count').textContent=`${done} / ${boxes.length}`;
+    const progress=root.querySelector('#lab-progress');progress.max=boxes.length||1;progress.value=done;
+  }
+  root.addEventListener('change',e=>{
+    if(e.target===momentSelect)navigateLab(Number(momentSelect.value));
+    if(e.target.matches('[data-lab-step]')){const set=checkedSteps.get(guideKey)||new Set();e.target.checked?set.add(e.target.dataset.labStep):set.delete(e.target.dataset.labStep);checkedSteps.set(guideKey,set);updateProgress();}
+  });
+  root.querySelector('.lab-tabs').addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const ids=['guide','vm','info'];let i=ids.indexOf(labTab);i=e.key==='Home'?0:e.key==='End'?2:(i+(e.key==='ArrowRight'?1:2))%3;selectLabTab(ids[i]);root.querySelector(`[data-lab-tab="${ids[i]}"]`).focus();});
   function toggleGuide(show) {
     guide.hidden = !show;
     guideButton.setAttribute('aria-expanded', String(show));
+    guideButton.textContent = show ? 'Hide guide' : 'Show guide';
     if (show) { help.hidden = true; guide.querySelector('button').focus(); }
     else if (frame) focusDesktop();
     else guideButton.focus();
@@ -187,7 +215,10 @@ export function createRemoteSession() {
     else root.querySelector('[data-remote="close"]').focus();
   }
   root.addEventListener('click', e => {
+    const labTarget=e.target.closest('[data-lab-tab]');if(labTarget)selectLabTab(labTarget.dataset.labTab);
     const action = e.target.closest('[data-remote]')?.dataset.remote;
+    if(action==='lab-prev')navigateLab(labIndex-1);
+    if(action==='lab-next')navigateLab(labIndex+1);
     if (action === 'expand') void expand();
     if (action === 'close') void close();
     if (action === 'connect') connect();
@@ -216,7 +247,7 @@ export function createRemoteSession() {
       else void close();
     }
     if (e.key === 'Tab') {
-      const controls = [...root.querySelectorAll('button:not(:disabled),a[href],iframe,summary')].filter(el => el.getClientRects().length);
+      const controls = [...root.querySelectorAll('button:not(:disabled),a[href],iframe,summary,input,select')].filter(el => el.tabIndex!==-1 && el.getClientRects().length);
       if (controls.length && e.shiftKey && document.activeElement === controls[0]) {e.preventDefault();controls.at(-1).focus();}
       else if (controls.length && !e.shiftKey && document.activeElement === controls.at(-1)) {e.preventDefault();controls[0].focus();}
     }
@@ -224,6 +255,13 @@ export function createRemoteSession() {
   const escapeGuide = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
   const guideSteps = steps => `<ol>${steps.map(step => `<li><p class="guide-do">${escapeGuide(step.action)}</p><div class="guide-step-detail"><strong>Why</strong><p>${escapeGuide(step.why)}</p><strong>Look for / explain</strong><p>${escapeGuide(step.look)}</p></div></li>`).join('')}</ol>`;
   return {open, isOpen: () => active, configured: () => Boolean(gateway), setGuide(g) {
+    guideKey=`${g.name}:${g.time}:${g.title}`;
+    labIndex=labMoments.findIndex(m=>m.name===g.name && people[m.personIndex].moments[m.momentIndex].title===g.title);
+    momentSelect.value=String(labIndex);
+    root.querySelector('#lab-page').textContent=`${labIndex+1} / ${labMoments.length}`;
+    root.querySelector('[data-remote="lab-prev"]').disabled=labIndex===0;
+    root.querySelector('[data-remote="lab-next"]').disabled=labIndex===labMoments.length-1;
+    root.querySelector('#remote-title').textContent=`${g.name} · ${labMoments[labIndex]?.title||g.title}`;
     root.querySelector('#remote-guide-content').innerHTML = `
       <div class="guide-moment"><span class="guide-perspective">${escapeGuide(g.perspective)}</span><p class="guide-person">${escapeGuide(g.time)} · ${escapeGuide(g.name)} · ${escapeGuide(g.job)}</p><h4>${escapeGuide(g.title)}</h4></div>
       <section class="guide-why"><h4>A day in ${escapeGuide(g.name.split(' ')[0])}’s life</h4><p>${escapeGuide(g.story)}</p><p>${escapeGuide(g.why)}</p></section>
@@ -234,7 +272,14 @@ export function createRemoteSession() {
       <section class="guide-proof"><h4>What to verify</h4><p>${escapeGuide(g.evidence)}</p></section>
       <details class="guide-section"><summary>Presenter notes &amp; fallback</summary><p>${escapeGuide(g.caution)}</p><p>If a screen, assignment or device is unavailable, show the prepared configuration and identify the missing live proof. Menu names can vary; use the portal search to find the named service.</p><h4>Ask the room</h4><p>${escapeGuide(g.question)}</p></details>
       <details class="guide-section"><summary>Microsoft reference guides</summary><div class="guide-references"><a href="https://learn.microsoft.com/en-us/entra/id-governance/what-are-lifecycle-workflows" target="_blank" rel="noopener noreferrer">Lifecycle workflows ↗</a><a href="https://learn.microsoft.com/en-us/entra/id-governance/entitlement-management-request-access" target="_blank" rel="noopener noreferrer">Request an access package ↗</a><a href="https://learn.microsoft.com/en-us/entra/identity/authentication/howto-authentication-temporary-access-pass" target="_blank" rel="noopener noreferrer">Temporary Access Pass ↗</a><a href="https://learn.microsoft.com/en-us/entra/identity/monitoring-health/concept-sign-in-log-activity-details" target="_blank" rel="noopener noreferrer">Read sign-in evidence ↗</a><a href="https://learn.microsoft.com/en-us/autopilot/profiles" target="_blank" rel="noopener noreferrer">Autopilot profiles ↗</a></div></details>`;
-    root.querySelector('#remote-guide-content').scrollTop = 0;
+    const content=root.querySelector('#remote-guide-content');
+    const children=[...content.children],panels={};
+    for(const id of ['guide','vm','info']){const panel=document.createElement('div');panel.id=`lab-panel-${id}`;panel.dataset.labPanel=id;panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby',`lab-tab-${id}`);panel.tabIndex=0;panels[id]=panel;content.append(panel);}
+    children.forEach(child=>{const title=child.querySelector('summary')?.textContent||'';const target=title==='Sign-in & preparation'?'vm':title.startsWith('Use cases')||title.startsWith('Presenter notes')||title.startsWith('Microsoft reference')?'info':'guide';panels[target].append(child);if(child.tagName==='DETAILS'&&target!=='guide')child.open=true;});
+    panels.vm.insertAdjacentHTML('afterbegin','<div class="lab-panel-intro"><h4>Your lab environment</h4><p>The live desktop stays open as you read. Use Focus desktop to return keyboard input to Windows.</p></div>');
+    panels.info.insertAdjacentHTML('afterbegin','<div class="lab-panel-intro"><h4>Lab information</h4><p>Six people · 22 moments · 8-hour workshop</p></div>');
+    guide.querySelectorAll('.guide-actions li').forEach((item,i)=>{const box=document.createElement('input');box.type='checkbox';box.dataset.labStep=String(i);box.checked=checkedSteps.get(guideKey)?.has(String(i))||false;box.setAttribute('aria-label',`Mark step complete: ${item.querySelector('.guide-do').textContent}`);item.prepend(box);});
+    selectLabTab(labTab);updateProgress();content.scrollTop=0;
   }, setContext(name, moment, perspective = 'Admin view', account = 'Harborline administrator') {
     root.querySelector('#remote-context-label').textContent = `${perspective} · ${name} · ${moment}`;
     root.querySelector('#remote-help').textContent = `Use the ${perspective === 'User view' ? 'separate persona' : 'administrator'} browser profile: ${account}. This view does not change the signed-in account.`;
