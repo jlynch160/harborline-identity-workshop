@@ -167,7 +167,8 @@ export function createRemoteSession() {
       else if (controls.length && !e.shiftKey && document.activeElement === controls.at(-1)) {e.preventDefault();controls[0].focus();}
     }
   }, true);
-  return {open, isOpen: () => active, configured: () => Boolean(gateway), setContext(name, moment) {
-    root.querySelector('#remote-context-label').textContent = `${name} · ${moment}`;
+  return {open, isOpen: () => active, configured: () => Boolean(gateway), setContext(name, moment, perspective = 'Admin view', account = 'Harborline administrator') {
+    root.querySelector('#remote-context-label').textContent = `${perspective} · ${name} · ${moment}`;
+    root.querySelector('#remote-help').textContent = `Use the ${perspective === 'User view' ? 'separate persona' : 'administrator'} browser profile: ${account}. This view does not change the signed-in account.`;
   }};
 }
