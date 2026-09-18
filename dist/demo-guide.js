@@ -128,11 +128,48 @@ const guides={
  ]
 };
 
+const highlights = {
+ jordan: [
+  ['Find Jordan’s identity records','Confirm the hire and contract dates','Compare the access he has today'],
+  ['Check the pre-hire workflow','Verify Jordan’s execution history','Review the proposed identity handover'],
+  ['Inspect Opera PMS roles','Follow property and role claims','Compare approvals and access expiry'],
+  ['Confirm Jordan’s sign-in method','Show his requests and assignments','Launch an application as Jordan']
+ ],
+ sofia: [
+  ['Confirm Sofia’s hire record','Inspect first-day preparation','Verify what actually ran'],
+  ['Find Sofia’s frontline device','Check policies and compliance','Show her managed desktop'],
+  ['Review Sofia’s current access','Explain the housekeeping access pattern','Open her assigned applications'],
+  ['Check eligible authentication methods','Prepare a private bootstrap credential','Show registration and sign-in']
+ ],
+ nadia: [
+  ['Inspect remote device setup','Verify profile and group targeting','Walk through arrival at the desktop'],
+  ['Inspect the external authenticator','Confirm Nadia’s policy scope','Match her prompt to sign-in evidence'],
+  ['Confirm the contract boundary','Review approval and expiry rules','Show Nadia’s available access'],
+  ['Verify the engagement end date','Trace expiry and review controls','Define the proof of access removal']
+ ],
+ sam: [
+  ['Compare managed and federated identities','Follow Sam’s HarborPass sign-in','Verify access to his application'],
+  ['Check the kiosk policy scope','Explain session and prompt controls','Compare report-only results with experience'],
+  ['Confirm the support operator’s scope','Explain identity checks and recovery','Verify restored access and audit evidence'],
+  ['Inspect the prepared kiosk','End Sam’s session and test handover','Explain the separate offline scenario']
+ ],
+ tom: [
+  ['Compare contract end and account state','Inspect access that remains','Observe Tom’s actual sign-in result'],
+  ['Check the expiry workflow scope','Locate execution gaps or failures','Review decisions and applied results'],
+  ['Read the review agent’s evidence','Explain the proposed cleanup decision','Verify outcomes after approved execution']
+ ],
+ kwame: [
+  ['Verify the departure and account state','Compare Kwame’s outcome with Tom’s','Test the fresh sign-in boundary'],
+  ['Inspect offboarding task results','Check remaining application access','Verify revocation and session behavior'],
+  ['Build the timestamped evidence trail','Validate claims against actual records','Agree owners and completion criteria']
+ ]
+};
+
 export function buildDemoGuide(p,index,isUser){
  const m=p.moments[index], [ids,admin]=guides[p.id][index], account=userAccount(p), u=userMoments[p.id][index];
  return {name:p.name,time:m.time,title:m.title,why:m.body,perspective:isUser?'User view':'Admin view',job:p.job,story:p.intro,
   account,domain:account.split('@')[1],cases:ids.map(id=>cases.find(c=>c.id===id)).filter(Boolean),caution:p.caution,question:p.question,evidence:m.evidence,
-  admin, user:[
+  highlights:highlights[p.id][index],admin, user:[
    s(`Inside the VM, open ${p.name}’s separate browser profile or a new InPrivate window. Open myapplications.microsoft.com and check the account menu. Use ${account} when asked to sign in.`,`${p.name}’s experience must be shown with the persona identity, separate from the administrator and Windows desktop logins.`,`Use the existing private credential and configured MFA method. For Sam’s federation story, follow HarborPass; do not substitute his workforce account. For leaver stories, denial may be the correct result.`),
    ...u.slice(1).map((action,i)=>s(action,i===0?m.body:`Connect this action to ${p.name}’s job as ${p.job.toLowerCase()} and the current moment: ${m.short}.`,i===0?'Pause on the account menu and relevant application, request or method screen. Explain the result actually shown.':m.evidence)),
    s('Return to the administrator profile and locate the corresponding record, request, assignment or sign-in event. Match the identity and time with what the audience just saw.','The user experience and the underlying control should tell the same story.',m.evidence)
