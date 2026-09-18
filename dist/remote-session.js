@@ -48,6 +48,7 @@ export function createRemoteSession() {
       <h3>Using your Entra workspace</h3>
       <p>Sign in to the protected gateway and your Windows demo desktop. Open Edge on that desktop and sign in to Entra normally.</p>
       <p><strong>Keyboard not responding?</strong> Select <strong>Focus desktop</strong>, then click the text field inside Windows. You can also use <strong>Open in separate tab</strong> to use the gateway directly. The same gateway sign-in is required.</p>
+      <p><strong>Copy and paste text:</strong> allow clipboard access if your browser asks. For manual transfer, select <strong>Focus desktop</strong>, press <strong>Ctrl + Alt + Shift</strong>, and paste into Guacamole’s <strong>Clipboard</strong> box. Close the menu with the same shortcut, click the destination field in Windows, and press <strong>Ctrl + V</strong>.</p>
       <p><strong>Full screen</strong> expands this same session. Use the browser’s Escape key to leave fullscreen, then <strong>Back to the story</strong> to resume the workshop.</p>
       <p><strong>Back to the story</strong> hides the desktop without ending the connection. <strong>Disconnect</strong> closes this view; it does not sign you out of Windows or Microsoft. Sign out inside the desktop when the demonstration is over.</p>
       <p>If the screen remains blank, the gateway may be unavailable or may not allow this workshop to frame it. A loaded page alone does not confirm an RDP connection.</p>
@@ -116,7 +117,9 @@ export function createRemoteSession() {
     frame.title = 'Protected Harborline remote desktop running Microsoft Entra';
     frame.tabIndex = 0;
     frame.referrerPolicy = 'no-referrer';
-    frame.setAttribute('allow', 'fullscreen');
+    // Delegate clipboard APIs only to this configured gateway frame. Browser
+    // permission and Guacamole sign-in still apply; the portal reads no clipboard.
+    frame.setAttribute('allow', 'fullscreen; clipboard-read; clipboard-write');
     frame.setAttribute('allowfullscreen', '');
     // Only the specifically configured, authenticated gateway is loaded here.
     // No Entra page, authentication token or remote password is proxied by this site.
