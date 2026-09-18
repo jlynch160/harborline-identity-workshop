@@ -26,6 +26,7 @@ export function createRemoteSession() {
     <header class="remote-toolbar">
       <div class="remote-heading"><span class="eyebrow">Real Entra · remote desktop</span><h2 id="remote-title">Your Entra workspace</h2></div>
       <div class="remote-controls">
+        <button class="outline" type="button" data-remote="focus" disabled>Focus desktop</button>
         <button class="outline" type="button" data-remote="expand">Full screen</button>
         <button class="quiet" type="button" data-remote="disconnect" disabled>Disconnect</button>
         <button class="primary" type="button" data-remote="close">Back to the story</button>
@@ -42,10 +43,11 @@ export function createRemoteSession() {
         <p class="remote-fineprint">The workshop’s public link never grants access to the remote desktop.</p>
       </div>
     </div>
-    <footer class="remote-footer"><span id="remote-help">Sign in to the remote desktop, then open Microsoft Entra in its browser.</span><button class="quiet" type="button" data-remote="help">Session help</button></footer>
+    <footer class="remote-footer"><span id="remote-help">Sign in to the remote desktop, then open Microsoft Entra in its browser.</span><div class="remote-footer-actions"><a class="quiet" id="remote-direct" target="_blank" rel="noopener noreferrer" hidden>Open in separate tab ↗</a><button class="quiet" type="button" data-remote="help">Session help</button></div></footer>
     <div class="remote-help" id="remote-help-panel" hidden>
       <h3>Using your Entra workspace</h3>
       <p>Sign in to the protected gateway and your Windows demo desktop. Open Edge on that desktop and sign in to Entra normally.</p>
+      <p><strong>Keyboard not responding?</strong> Select <strong>Focus desktop</strong>, then click the text field inside Windows. You can also use <strong>Open in separate tab</strong> to use the gateway directly. The same gateway sign-in is required.</p>
       <p><strong>Full screen</strong> expands this same session. Use the browser’s Escape key to leave fullscreen, then <strong>Back to the story</strong> to resume the workshop.</p>
       <p><strong>Back to the story</strong> hides the desktop without ending the connection. <strong>Disconnect</strong> closes this view; it does not sign you out of Windows or Microsoft. Sign out inside the desktop when the demonstration is over.</p>
       <p>If the screen remains blank, the gateway may be unavailable or may not allow this workshop to frame it. A loaded page alone does not confirm an RDP connection.</p>
@@ -64,6 +66,8 @@ export function createRemoteSession() {
   const expandButton = root.querySelector('[data-remote="expand"]');
   const disconnectButton = root.querySelector('[data-remote="disconnect"]');
   const connectButton = root.querySelector('[data-remote="connect"]');
+  const focusButton = root.querySelector('[data-remote="focus"]');
+  const directLink = root.querySelector('#remote-direct');
   try { gateway = validateGateway(remoteConfig.gatewayUrl); }
   catch { status.textContent = 'Gateway configuration needs attention'; }
   if (gateway) {
@@ -71,6 +75,19 @@ export function createRemoteSession() {
     root.querySelector('#remote-welcome-title').textContent = 'Open your real Entra workspace.';
     root.querySelector('#remote-welcome-copy').textContent = 'Sign in to your protected demo desktop. Your mouse and keyboard will control its browser directly from here.';
     connectButton.disabled = false;
+    directLink.href = gateway;
+    directLink.hidden = false;
+  }
+  // Guacamole documents that clicking a cross-origin frame may not restore its
+  // keyboard focus. Recover at workspace transitions, with a manual fallback.
+  // https://guacamole.apache.org/faq/#i-want-to-put-guacamole-in-an-iframe-but-keyboard-doesnt-work-correctly
+  function focusDesktop() {
+    if (!active || !frame || !help.hidden) return;
+    frame.focus({preventScroll: true});
+  }
+  function refocusWhenUnclaimed() {
+    const focused = document.activeElement;
+    if (!focused || focused === document.body || focused === root) focusDesktop();
   }
   const fullscreenActive = () => document.fullscreenElement === root;
   function syncFullscreen() {
@@ -90,12 +107,14 @@ export function createRemoteSession() {
       }
     }
     syncFullscreen();
+    requestAnimationFrame(focusDesktop);
   }
   function connect() {
     if (!gateway || frame) return;
     frame = document.createElement('iframe');
     frame.id = 'entra-session-frame';
     frame.title = 'Protected Harborline remote desktop running Microsoft Entra';
+    frame.tabIndex = 0;
     frame.referrerPolicy = 'no-referrer';
     frame.setAttribute('allow', 'fullscreen');
     frame.setAttribute('allowfullscreen', '');
@@ -105,15 +124,18 @@ export function createRemoteSession() {
     status.textContent = 'Opening protected gateway…';
     welcome.hidden = true;
     disconnectButton.disabled = false;
+    focusButton.disabled = false;
     frame.addEventListener('load', () => {
       clearTimeout(loadTimer);
       status.textContent = 'Gateway page opened · complete sign-in inside';
+      requestAnimationFrame(focusDesktop);
     });
     frame.addEventListener('error', () => {
       clearTimeout(loadTimer);
       status.textContent = 'Gateway could not load · see Session help';
     });
     root.querySelector('#remote-display').append(frame);
+    focusDesktop();
     loadTimer = setTimeout(() => { status.textContent = 'Still waiting for the gateway · see Session help'; }, 20000);
   }
   function disconnect() {
@@ -122,6 +144,7 @@ export function createRemoteSession() {
     frame = null;
     welcome.hidden = false;
     disconnectButton.disabled = true;
+    focusButton.disabled = true;
     status.textContent = gateway ? 'View disconnected · desktop sign-in may remain active' : 'Connection not configured';
   }
   async function close() {
@@ -141,7 +164,8 @@ export function createRemoteSession() {
     root.hidden = false;
     app.inert = true;
     document.body.classList.add('remote-open');
-    root.querySelector('[data-remote="close"]').focus();
+    if (frame && help.hidden) focusDesktop();
+    else root.querySelector('[data-remote="close"]').focus();
   }
   root.addEventListener('click', e => {
     const action = e.target.closest('[data-remote]')?.dataset.remote;
@@ -149,20 +173,28 @@ export function createRemoteSession() {
     if (action === 'close') void close();
     if (action === 'connect') connect();
     if (action === 'disconnect') disconnect();
-    if (action === 'help') help.hidden = !help.hidden;
+    if (action === 'focus') {help.hidden = true;focusDesktop();}
+    if (action === 'help') {
+      help.hidden = !help.hidden;
+      if (help.hidden) focusDesktop();
+      else help.querySelector('button').focus();
+    }
   });
-  document.addEventListener('fullscreenchange', syncFullscreen);
+  document.addEventListener('fullscreenchange', () => {syncFullscreen();requestAnimationFrame(focusDesktop);});
+  document.addEventListener('click', refocusWhenUnclaimed);
+  window.addEventListener('focus', refocusWhenUnclaimed);
   document.addEventListener('keydown', e => {
     if (!active) return;
+    refocusWhenUnclaimed();
     if (e.key === 'Escape' && !fullscreenActive()) {
       e.preventDefault();
       e.stopImmediatePropagation();
-      if (!help.hidden) help.hidden = true;
+      if (!help.hidden) {help.hidden = true;focusDesktop();}
       else if (root.classList.contains('remote-maximized')) {root.classList.remove('remote-maximized');syncFullscreen();}
       else void close();
     }
     if (e.key === 'Tab') {
-      const controls = [...root.querySelectorAll('button:not(:disabled),iframe')].filter(el => el.getClientRects().length);
+      const controls = [...root.querySelectorAll('button:not(:disabled),a[href],iframe')].filter(el => el.getClientRects().length);
       if (controls.length && e.shiftKey && document.activeElement === controls[0]) {e.preventDefault();controls.at(-1).focus();}
       else if (controls.length && !e.shiftKey && document.activeElement === controls.at(-1)) {e.preventDefault();controls[0].focus();}
     }
