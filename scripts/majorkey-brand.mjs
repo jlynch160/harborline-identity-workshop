@@ -1,0 +1,17 @@
+import fs from 'node:fs';
+const appPath='dist/app.js';
+let app=fs.readFileSync(appPath,'utf8');
+app=app.replace("['#b9f67a','#80ddff','#c6adff','#ffcc82','#ffa3a7','#80e1cf']","['#20f593','#b98aff','#68e9cb','#d5aeff','#8ccfff','#a6eaa1']");
+app=app.replace('<span class="brand-mark">h.</span><span class="brand-name">harborline<small>IDENTITY EXPERIENCE · MAJORKEY</small></span>','<img class="majorkey-logo" src="./assets/majorkey-logo.svg" alt="MajorKey" width="220" height="38"><span class="brand-divider"></span><span class="brand-context">Identity in action<small>HARBORLINE WORKSHOP</small></span>');
+app=app.replace('The human side of identity','THE EXPERIENCE');
+app=app.replace('Six people. Every identity moment.','Six people. One connected story.');
+app=app.replace('THE HARBORLINE STORIES','IDENTITY, THROUGH THEIR EYES');
+app=app.replace('HARBORLINE / PEOPLE','HARBORLINE');
+app=app.replace('<div class="identity-monogram" aria-hidden="true">','<div class="identity-orbit" aria-hidden="true"><i></i><i></i><i></i></div><div class="identity-monogram" aria-hidden="true">');
+app=app.replace('<div class="identity-context">${escape(p.company)}</div>','<div class="identity-context"><span>${escape(p.company)}</span><span class="card-edition">PERSONA / 0${state.person+1}</span></div>');
+app=app.replace('<footer class="bottomline"><span>Identity is infrastructure. This is what it feels like to a person.</span>','<footer class="bottomline"><span class="footer-brand"><img src="./assets/majorkey-logo.svg" alt="MajorKey" width="110" height="19"><span>Identity in action · Harborline reference lab</span></span>');
+fs.writeFileSync(appPath,app);
+let html=fs.readFileSync('dist/index.html','utf8').replace('content="#09121f"','content="#120823"').replace('A day in the life · Harborline × MajorKey','MajorKey | Identity in action').replace('</head>','<link rel="stylesheet" href="./majorkey.css"></head>');
+fs.writeFileSync('dist/index.html',html);
+const logo=fs.readFileSync('dist/assets/majorkey-logo.svg','utf8');
+fs.writeFileSync('dist/favicon.svg',logo.replace('width="220" height="38" viewBox="0 0 220 38"','width="40" height="40" viewBox="0 0 40 38"'));
