@@ -1,3 +1,4 @@
+import {focusRemoteWindow,watchRemoteFocus} from './desktop-focus.js';
 import {installDualStage} from './dual-stage.js';
 import {remoteConfig} from './remote-config.js';
 import {people} from './data.js';
@@ -68,7 +69,7 @@ export function createRemoteSession() {
   document.body.append(root);
   let preferredSide = 'admin';
   const dual = installDualStage(root,remoteConfig,validateGateway,()=>{preferredSide='user';});
-  let frame = null;
+  let frame = null,stopFocusWatch=null;
   let previousFocus = null;
   let active = false;
   let loadTimer = null;
@@ -133,9 +134,10 @@ export function createRemoteSession() {
   // https://guacamole.apache.org/faq/#i-want-to-put-guacamole-in-an-iframe-but-keyboard-doesnt-work-correctly
   function focusDesktop() {
     if (!active || !help.hidden) return;
-    if (dual.isFocused() || (preferredSide==='user' && dual.visible())) {dual.focus();return;}
+    if (document.activeElement===frame && frame) {focusRemoteWindow(frame);return;}
+    if (dual.isFocused() || (preferredSide==='user' && dual.visible() && dual.connected())) {dual.focus();return;}
     if (!frame) return;
-    frame.focus({preventScroll: true});
+    focusRemoteWindow(frame);
   }
   function refocusWhenUnclaimed() {
     const focused = document.activeElement;
@@ -167,7 +169,7 @@ export function createRemoteSession() {
     frame.id = 'entra-session-frame';
     frame.title = 'Protected Harborline remote desktop running Microsoft Entra';
     frame.tabIndex = 0;
-    frame.addEventListener('focus',()=>{preferredSide='admin';});
+    stopFocusWatch=watchRemoteFocus(frame,()=>{preferredSide='admin';});
     frame.referrerPolicy = 'no-referrer';
     frame.setAttribute('allow', 'fullscreen');
     frame.setAttribute('allowfullscreen', '');
@@ -181,7 +183,7 @@ export function createRemoteSession() {
     frame.addEventListener('load', () => {
       clearTimeout(loadTimer);
       status.textContent = 'Gateway page opened · complete sign-in inside';
-      requestAnimationFrame(focusDesktop);
+      if(document.activeElement===frame)requestAnimationFrame(()=>focusRemoteWindow(frame));
     });
     frame.addEventListener('error', () => {
       clearTimeout(loadTimer);
@@ -193,6 +195,7 @@ export function createRemoteSession() {
   }
   function disconnect() {
     clearTimeout(loadTimer);
+    stopFocusWatch?.();stopFocusWatch=null;
     frame?.remove();
     frame = null;
     welcome.hidden = false;
@@ -229,7 +232,7 @@ export function createRemoteSession() {
     if (action === 'close') void close();
     if (action === 'connect') connect();
     if (action === 'disconnect') disconnect();
-    if (action === 'focus') {preferredSide='admin';help.hidden = true;frame?.focus({preventScroll:true});}
+    if (action === 'focus') {preferredSide='admin';help.hidden = true;focusRemoteWindow(frame);}
     if (action === 'guide') toggleGuide(guide.hidden);
     if (action === 'guide-close') toggleGuide(false);
     if (action === 'help') {
