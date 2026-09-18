@@ -259,8 +259,8 @@ export function createRemoteSession() {
     labIndex=labMoments.findIndex(m=>m.name===g.name && people[m.personIndex].moments[m.momentIndex].title===g.title);
     momentSelect.value=String(labIndex);
     root.querySelector('#lab-page').textContent=`${labIndex+1} / ${labMoments.length}`;
-    root.querySelector('[data-remote="lab-prev"]').disabled=labIndex===0;
-    root.querySelector('[data-remote="lab-next"]').disabled=labIndex===labMoments.length-1;
+    root.querySelector('[data-remote="lab-prev"]').disabled=labIndex<=0;
+    root.querySelector('[data-remote="lab-next"]').disabled=labIndex<0||labIndex===labMoments.length-1;root.querySelector('.lab-picker').hidden=labIndex<0;root.querySelector('.lab-pagination').hidden=labIndex<0;
     root.querySelector('#remote-title').textContent=`${g.name} · ${labMoments[labIndex]?.title||g.title}`;
     root.querySelector('#remote-guide-content').innerHTML = `
       <div class="guide-moment"><span class="guide-perspective">${escapeGuide(g.perspective)}</span><p class="guide-person">${escapeGuide(g.time)} · ${escapeGuide(g.name)} · ${escapeGuide(g.job)}</p><h4>${escapeGuide(g.title)}</h4></div>
