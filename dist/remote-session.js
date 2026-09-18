@@ -68,7 +68,7 @@ export function createRemoteSession() {
     </div>`;
   document.body.append(root);
   let preferredSide = 'admin';
-  const dual = installDualStage(root,remoteConfig,validateGateway,()=>{preferredSide='user';});
+  const dual = installDualStage(root,remoteConfig,validateGateway,()=>{preferredSide='user';},()=>{preferredSide='admin';focusRemoteWindow(frame);});
   let frame = null,stopFocusWatch=null;
   let previousFocus = null;
   let active = false;
@@ -134,10 +134,10 @@ export function createRemoteSession() {
   // https://guacamole.apache.org/faq/#i-want-to-put-guacamole-in-an-iframe-but-keyboard-doesnt-work-correctly
   function focusDesktop() {
     if (!active || !help.hidden) return;
-    if (document.activeElement===frame && frame) {focusRemoteWindow(frame);return;}
+    if (document.activeElement===frame && frame) {dual.setActive('admin');focusRemoteWindow(frame);return;}
     if (dual.isFocused() || (preferredSide==='user' && dual.visible() && dual.connected())) {dual.focus();return;}
     if (!frame) return;
-    focusRemoteWindow(frame);
+    dual.setActive('admin');focusRemoteWindow(frame);
   }
   function refocusWhenUnclaimed() {
     const focused = document.activeElement;
@@ -169,7 +169,7 @@ export function createRemoteSession() {
     frame.id = 'entra-session-frame';
     frame.title = 'Protected Harborline remote desktop running Microsoft Entra';
     frame.tabIndex = 0;
-    stopFocusWatch=watchRemoteFocus(frame,()=>{preferredSide='admin';});
+    stopFocusWatch=watchRemoteFocus(frame,()=>{preferredSide='admin';dual.setActive('admin');});
     frame.referrerPolicy = 'no-referrer';
     frame.setAttribute('allow', 'fullscreen');
     frame.setAttribute('allowfullscreen', '');
@@ -190,6 +190,7 @@ export function createRemoteSession() {
       status.textContent = 'Gateway could not load · see Session help';
     });
     root.querySelector('#remote-display').append(frame);
+    preferredSide='admin';dual.setActive('admin');
     focusDesktop();
     loadTimer = setTimeout(() => { status.textContent = 'Still waiting for the gateway · see Session help'; }, 20000);
   }
@@ -232,7 +233,7 @@ export function createRemoteSession() {
     if (action === 'close') void close();
     if (action === 'connect') connect();
     if (action === 'disconnect') disconnect();
-    if (action === 'focus') {preferredSide='admin';help.hidden = true;focusRemoteWindow(frame);}
+    if (action === 'focus') {preferredSide='admin';dual.setActive('admin');help.hidden = true;focusRemoteWindow(frame);}
     if (action === 'guide') toggleGuide(guide.hidden);
     if (action === 'guide-close') toggleGuide(false);
     if (action === 'help') {
