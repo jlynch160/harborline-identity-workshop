@@ -1,3 +1,4 @@
+import {installDualStage} from './dual-stage.js';
 import {remoteConfig} from './remote-config.js';
 import {people} from './data.js';
 
@@ -27,10 +28,10 @@ export function createRemoteSession() {
     <header class="remote-toolbar">
       <div class="remote-heading"><img src="./assets/majorkey-logo.svg" alt="MajorKey" width="120" height="24"><div><span class="eyebrow">IDENTITY IN ACTION · GUIDED LAB</span><h2 id="remote-title">Your Entra workspace</h2></div></div>
       <div class="remote-controls">
-        <button class="outline remote-guide-toggle" type="button" data-remote="guide" aria-expanded="true" aria-controls="remote-guide">Hide guide</button>
-        <button class="outline" type="button" data-remote="focus" disabled>Focus desktop</button>
+        <button class="outline remote-guide-toggle" type="button" data-remote="guide" aria-expanded="false" aria-controls="remote-guide">Show guide</button>
+        <button class="outline" type="button" data-remote="focus" disabled>Focus admin</button>
         <button class="outline" type="button" data-remote="expand">Full screen</button>
-        <button class="quiet" type="button" data-remote="disconnect" disabled>Disconnect</button>
+        <button class="quiet" type="button" data-remote="disconnect" disabled>Disconnect admin</button>
         <button class="primary" type="button" data-remote="close">Back to the story</button>
       </div>
     </header>
@@ -47,7 +48,7 @@ export function createRemoteSession() {
       </div>
     </div>
     <footer class="remote-footer"><span id="remote-help">Sign in to the remote desktop, then open Microsoft Entra in its browser.</span><div class="remote-footer-actions"><a class="quiet" id="remote-direct" target="_blank" rel="noopener noreferrer" hidden>Open in separate tab ↗</a><button class="quiet" type="button" data-remote="help">Session help</button></div></footer>
-    <aside class="remote-guide" id="remote-guide" aria-labelledby="remote-guide-title">
+    <aside class="remote-guide" id="remote-guide" hidden aria-labelledby="remote-guide-title">
       <header class="remote-guide-header"><div><span class="eyebrow">YOUR DEMO COMPANION</span><h3 id="remote-guide-title">Steps &amp; why</h3></div><button class="quiet" type="button" data-remote="guide-close" aria-label="Close steps and why">✕</button></header>
       <div class="lab-tabs" role="tablist" aria-label="Lab companion"><button role="tab" id="lab-tab-guide" data-lab-tab="guide" aria-selected="true" aria-controls="lab-panel-guide">Guide</button><button role="tab" id="lab-tab-vm" data-lab-tab="vm" aria-selected="false" aria-controls="lab-panel-vm" tabindex="-1">VM</button><button role="tab" id="lab-tab-info" data-lab-tab="info" aria-selected="false" aria-controls="lab-panel-info" tabindex="-1">Lab info</button></div>
       <div class="lab-picker"><label for="lab-moment">Day in the life</label><select id="lab-moment"></select></div>
@@ -65,6 +66,8 @@ export function createRemoteSession() {
       <button class="outline" type="button" data-remote="help">Close help</button>
     </div>`;
   document.body.append(root);
+  let preferredSide = 'admin';
+  const dual = installDualStage(root,remoteConfig,validateGateway,()=>{preferredSide='user';});
   let frame = null;
   let previousFocus = null;
   let active = false;
@@ -129,7 +132,9 @@ export function createRemoteSession() {
   // keyboard focus. Recover at workspace transitions, with a manual fallback.
   // https://guacamole.apache.org/faq/#i-want-to-put-guacamole-in-an-iframe-but-keyboard-doesnt-work-correctly
   function focusDesktop() {
-    if (!active || !frame || !help.hidden) return;
+    if (!active || !help.hidden) return;
+    if (dual.isFocused() || (preferredSide==='user' && dual.visible())) {dual.focus();return;}
+    if (!frame) return;
     frame.focus({preventScroll: true});
   }
   function refocusWhenUnclaimed() {
@@ -162,6 +167,7 @@ export function createRemoteSession() {
     frame.id = 'entra-session-frame';
     frame.title = 'Protected Harborline remote desktop running Microsoft Entra';
     frame.tabIndex = 0;
+    frame.addEventListener('focus',()=>{preferredSide='admin';});
     frame.referrerPolicy = 'no-referrer';
     frame.setAttribute('allow', 'fullscreen');
     frame.setAttribute('allowfullscreen', '');
@@ -223,7 +229,7 @@ export function createRemoteSession() {
     if (action === 'close') void close();
     if (action === 'connect') connect();
     if (action === 'disconnect') disconnect();
-    if (action === 'focus') {help.hidden = true;focusDesktop();}
+    if (action === 'focus') {preferredSide='admin';help.hidden = true;frame?.focus({preventScroll:true});}
     if (action === 'guide') toggleGuide(guide.hidden);
     if (action === 'guide-close') toggleGuide(false);
     if (action === 'help') {
@@ -255,6 +261,7 @@ export function createRemoteSession() {
   const escapeGuide = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
   const guideSteps = steps => `<ol>${steps.map(step => `<li><p class="guide-do">${escapeGuide(step.action)}</p><div class="guide-step-detail"><strong>Why</strong><p>${escapeGuide(step.why)}</p><strong>Look for / explain</strong><p>${escapeGuide(step.look)}</p></div></li>`).join('')}</ol>`;
   return {open, isOpen: () => active, configured: () => Boolean(gateway), setGuide(g) {
+    dual.setGuide(g);
     guideKey=`${g.name}:${g.time}:${g.title}`;
     labIndex=labMoments.findIndex(m=>m.name===g.name && people[m.personIndex].moments[m.momentIndex].title===g.title);
     momentSelect.value=String(labIndex);
@@ -267,7 +274,7 @@ export function createRemoteSession() {
       <section class="lab-at-glance" aria-label="High-level steps"><div class="lab-glance-heading"><h4>At a glance</h4><span>The route through this moment</span></div><ol>${g.highlights.map((text,i)=>`<li><span class="lab-glance-number" aria-hidden="true">${i+1}</span><strong>${escapeGuide(text)}</strong></li>`).join('')}</ol></section>
       <section class="guide-why"><h4>A day in ${escapeGuide(g.name.split(' ')[0])}’s life</h4><p>${escapeGuide(g.story)}</p><p>${escapeGuide(g.why)}</p></section>
       <details class="guide-section"><summary>Use cases in this moment <span>${g.cases.length}</span></summary><ul class="guide-case-list">${g.cases.map(c=>`<li><strong>UC ${c.id} · ${escapeGuide(c.title)}</strong><p>${escapeGuide(c.description)}</p></li>`).join('')}</ul></details>
-      <details class="guide-section"><summary>Sign-in &amp; preparation</summary><div class="guide-login"><h4>1 · Protected gateway</h4><p>Use your existing Apache Guacamole username, password and authenticator code. This opens the connection chooser; it is separate from Windows and Microsoft sign-in.</p><h4>2 · Windows demo desktop</h4><dl><dt>VM</dt><dd>hl-frontline-01</dd><dt>Username</dt><dd>hladmin</dd><dt>Domain / computer</dt><dd>HL-FRONT-01</dd><dt>Windows sign-in</dt><dd>HL-FRONT-01\\hladmin</dd><dt>Password</dt><dd>Use the existing private VM credential. It is not stored on this public page.</dd></dl><p>For separate Username / Password / Domain fields, enter hladmin and HL-FRONT-01 in their respective fields. This local Windows account opens the desktop; it does not sign you into Entra. Sam’s kiosk walkthrough needs the separately prepared kiosk.</p><h4>3 · ${escapeGuide(g.name)}’s Microsoft session</h4><dl><dt>Username</dt><dd>${escapeGuide(g.account)}</dd><dt>Account domain</dt><dd>${escapeGuide(g.domain)}</dd><dt>Password / MFA</dt><dd>Use this persona’s existing private credential and configured authentication method. A Temporary Access Pass is used only when prepared for that registration scenario.</dd></dl><p>Inside the VM, use a separate browser profile or InPrivate window for this persona. Open myapplications.microsoft.com. Microsoft sign-in normally takes the complete username; do not enter the Windows computer name as its domain.</p><h4>4 · Administrator session</h4><p>Use your prepared Harborline administrator browser profile at entra.microsoft.com. Confirm its signed-in account, directory and required role. The persona account does not automatically have administrator permissions.</p><p class="guide-password-note">Passwords belong in your private presenter credential sheet or vault. A hidden field on a public website would still expose them.</p></div></details>
+      <details class="guide-section"><summary>Sign-in &amp; preparation</summary><div class="guide-login"><h4>1 · Protected gateway</h4><p>Use your existing Apache Guacamole username, password and authenticator code. This opens the connection chooser; it is separate from Windows and Microsoft sign-in.</p><h4>2 · Windows demo desktop</h4><dl><dt>VM</dt><dd>hl-frontline-01</dd><dt>Username</dt><dd>hladmin</dd><dt>Domain / computer</dt><dd>HL-FRONT-01</dd><dt>Windows sign-in</dt><dd>HL-FRONT-01\\hladmin</dd><dt>Password</dt><dd>Use the existing private VM credential. It is not stored on this public page.</dd></dl><p>For separate Username / Password / Domain fields, enter hladmin and HL-FRONT-01 in their respective fields. This local Windows account opens the desktop; it does not sign you into Entra. Sam’s kiosk walkthrough needs the separately prepared kiosk.</p><h4>User-side Windows desktop</h4><dl><dt>VM</dt><dd>hl-kiosk-01</dd><dt>Username</dt><dd>hladmin</dd><dt>Domain</dt><dd>hl-kiosk-01</dd><dt>Password</dt><dd>Use the existing private kiosk VM credential.</dd></dl><p>The right panel opens a different VM. Sign in to Microsoft as the persona inside that desktop. The left panel remains on hl-frontline-01.</p><h4>3 · ${escapeGuide(g.name)}’s Microsoft session</h4><dl><dt>Username</dt><dd>${escapeGuide(g.account)}</dd><dt>Account domain</dt><dd>${escapeGuide(g.domain)}</dd><dt>Password / MFA</dt><dd>Use this persona’s existing private credential and configured authentication method. A Temporary Access Pass is used only when prepared for that registration scenario.</dd></dl><p>Inside the VM, use a separate browser profile or InPrivate window for this persona. Open myapplications.microsoft.com. Microsoft sign-in normally takes the complete username; do not enter the Windows computer name as its domain.</p><h4>4 · Administrator session</h4><p>Use your prepared Harborline administrator browser profile at entra.microsoft.com. Confirm its signed-in account, directory and required role. The persona account does not automatically have administrator permissions.</p><p class="guide-password-note">Passwords belong in your private presenter credential sheet or vault. A hidden field on a public website would still expose them.</p></div></details>
       <details class="guide-section guide-actions" ${g.perspective==='Admin view'?'open':''}><summary>Admin walkthrough <span>${g.admin.length} steps</span></summary>${guideSteps(g.admin)}</details>
       <details class="guide-section guide-actions" ${g.perspective==='User view'?'open':''}><summary>${escapeGuide(g.name.split(' ')[0])}’s experience <span>${g.user.length} steps</span></summary><p class="guide-user-title">${escapeGuide(g.userTitle)}</p>${guideSteps(g.user)}</details>
       <section class="guide-proof"><h4>What to verify</h4><p>${escapeGuide(g.evidence)}</p></section>${g.company?`<details class="guide-company"><summary>How a company deploys this</summary><p>${escapeGuide(g.company.company)}</p><h4>Owners</h4><p>${escapeGuide(g.company.owners)}</p><h4>Rollout</h4><ol>${g.company.deploy.map(x=>`<li>${escapeGuide(x)}</li>`).join('')}</ol><h4>Acceptance</h4><p>${escapeGuide(g.company.proof)}</p><h4>Operational measures</h4><p>${escapeGuide(g.company.metric)}</p></details>`:''}
