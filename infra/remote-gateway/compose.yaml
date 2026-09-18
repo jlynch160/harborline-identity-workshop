@@ -1,0 +1,61 @@
+services:
+  database:
+    image: postgres:16-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: guacamole
+      POSTGRES_USER: guacamole
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Generate the private environment first}
+    volumes:
+      - database:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U guacamole -d guacamole']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    networks: [data]
+  guacd:
+    image: guacamole/guacd:1.6.0
+    restart: unless-stopped
+    # Only this internal Docker network can reach the unauthenticated guacd port.
+    # Verify and import the Windows RDP certificate before the first connection.
+    networks: [desktop]
+  guacamole:
+    image: guacamole/guacamole:1.6.0
+    restart: unless-stopped
+    depends_on:
+      database: {condition: service_healthy}
+      guacd: {condition: service_started}
+    environment:
+      GUACD_HOSTNAME: guacd
+      POSTGRESQL_ENABLED: 'true'
+      POSTGRESQL_HOSTNAME: database
+      POSTGRESQL_DATABASE: guacamole
+      POSTGRESQL_USERNAME: guacamole
+      POSTGRESQL_PASSWORD: ${DB_PASSWORD}
+      POSTGRESQL_DEFAULT_MAX_CONNECTIONS: '1'
+      POSTGRESQL_DEFAULT_MAX_CONNECTIONS_PER_USER: '1'
+      TOTP_ENABLED: 'true'
+      TOTP_ISSUER: Harborline Workshop
+      REMOTE_IP_VALVE_ENABLED: 'true'
+      BAN_ENABLED: 'true'
+    networks: [data, desktop, web]
+  proxy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    depends_on: [guacamole]
+    ports: ['443:443']
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [web]
+volumes:
+  database:
+  caddy_data:
+  caddy_config:
+networks:
+  data: {internal: true}
+  desktop:
+  web:
