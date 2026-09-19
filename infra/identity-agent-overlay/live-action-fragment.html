@@ -1,0 +1,57 @@
+<style>
+  #mk-live-action{position:fixed;z-index:2147483000;right:18px;bottom:18px;font-family:Inter,Segoe UI,Arial,sans-serif;color:#f8fbff}
+  #mk-live-action *{box-sizing:border-box}
+  .mk-action-launch{display:flex;align-items:center;gap:9px;margin-left:auto;border:1px solid rgba(136,255,204,.55);border-radius:999px;padding:10px 15px;background:linear-gradient(135deg,#102945,#24144d);box-shadow:0 14px 40px rgba(0,0,0,.38);color:#fff;font-weight:760;letter-spacing:.02em;cursor:pointer}
+  .mk-action-launch:before{content:"";width:9px;height:9px;border-radius:50%;background:#64f3a8;box-shadow:0 0 16px #64f3a8}
+  .mk-action-panel{display:none;width:min(390px,calc(100vw - 28px));margin-bottom:10px;border:1px solid rgba(154,129,255,.5);border-radius:19px;overflow:hidden;background:linear-gradient(155deg,rgba(12,20,42,.98),rgba(26,14,57,.98));box-shadow:0 24px 80px rgba(0,0,0,.55)}
+  .mk-action-panel.open{display:block;animation:mk-rise .2s ease-out}
+  @keyframes mk-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .mk-action-head{display:flex;align-items:flex-start;justify-content:space-between;padding:17px 18px 13px;border-bottom:1px solid rgba(255,255,255,.09);background:radial-gradient(circle at 85% 0,rgba(102,73,255,.35),transparent 48%)}
+  .mk-action-kicker{font-size:10px;font-weight:800;letter-spacing:.14em;color:#6ff5b3;text-transform:uppercase}.mk-action-title{margin-top:4px;font-size:17px;font-weight:780}.mk-action-close{border:0;background:transparent;color:#bfc5d8;font-size:20px;cursor:pointer}
+  .mk-action-body{padding:16px 18px 18px}.mk-action-scope{display:flex;align-items:center;gap:8px;color:#b9c5dd;font-size:11px}.mk-action-scope b{color:#7bf0b2}.mk-action-flow{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin:14px 0;padding:12px;border:1px solid rgba(255,255,255,.1);border-radius:13px;background:rgba(255,255,255,.045)}
+  .mk-action-node small{display:block;margin-bottom:3px;color:#8f9bb5;font-size:9px;text-transform:uppercase;letter-spacing:.08em}.mk-action-node strong{font-size:12px;line-height:1.25}.mk-action-arrow{color:#8e7dff;font-size:19px}.mk-action-state{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:12px}.mk-action-pill{border:1px solid rgba(255,255,255,.16);border-radius:99px;padding:5px 9px;color:#d9e1ef}.mk-action-pill.on{border-color:rgba(100,243,168,.55);color:#7bf0b2}.mk-action-plan{display:none;margin-bottom:12px;padding:12px;border-left:3px solid #8f7cff;border-radius:9px;background:rgba(143,124,255,.1);color:#dbe2f2;font-size:12px;line-height:1.45}.mk-action-plan.show{display:block}.mk-action-buttons{display:flex;gap:8px;flex-wrap:wrap}.mk-action-btn{border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:9px 11px;background:rgba(255,255,255,.06);color:#fff;font-size:11px;font-weight:750;cursor:pointer}.mk-action-btn.primary{border-color:#7764ff;background:linear-gradient(135deg,#6653ef,#8d4ef0)}.mk-action-btn.undo{border-color:rgba(100,243,168,.5);color:#7bf0b2}.mk-action-btn:disabled{opacity:.42;cursor:not-allowed}.mk-action-receipt{display:none;margin-top:12px;padding-top:11px;border-top:1px solid rgba(255,255,255,.09);font-size:11px;color:#adb8ce;line-height:1.5}.mk-action-receipt.show{display:block}.mk-action-receipt strong{color:#75efad}.mk-action-error{color:#ff9aab}.mk-action-spin{opacity:.55;pointer-events:none}
+  @media(max-width:600px){#mk-live-action{right:10px;bottom:10px}.mk-action-panel{width:calc(100vw - 20px)}}
+</style>
+<div id="mk-live-action">
+  <section class="mk-action-panel" aria-label="Live Entra action" id="mk-action-panel">
+    <header class="mk-action-head">
+      <div><div class="mk-action-kicker">Microsoft Graph · live tenant</div><div class="mk-action-title">Approved AI action</div></div>
+      <button class="mk-action-close" id="mk-action-close" aria-label="Close">×</button>
+    </header>
+    <div class="mk-action-body" id="mk-action-body">
+      <div class="mk-action-scope"><b>GUARDED</b><span>One user · one demo group · reversible</span></div>
+      <div class="mk-action-flow">
+        <div class="mk-action-node"><small>Identity</small><strong id="mk-action-user">Jordan Vale</strong></div>
+        <div class="mk-action-arrow">→</div>
+        <div class="mk-action-node"><small>Security group</small><strong id="mk-action-group">ZZ-DEMO-AI-Replay</strong></div>
+      </div>
+      <div class="mk-action-state"><span>Verified Entra state</span><span class="mk-action-pill" id="mk-action-state">Checking…</span></div>
+      <div class="mk-action-plan" id="mk-action-plan"></div>
+      <div class="mk-action-buttons">
+        <button class="mk-action-btn" id="mk-action-preview">Preview change</button>
+        <button class="mk-action-btn primary" id="mk-action-approve" disabled>Approve &amp; run</button>
+        <button class="mk-action-btn undo" id="mk-action-undo" disabled>Undo</button>
+        <button class="mk-action-btn" id="mk-action-refresh">Refresh</button>
+      </div>
+      <div class="mk-action-receipt" id="mk-action-receipt"></div>
+    </div>
+  </section>
+  <button class="mk-action-launch" id="mk-action-launch">Live Entra action</button>
+</div>
+<script>
+(()=>{
+  const $=id=>document.getElementById(id), panel=$('mk-action-panel'), body=$('mk-action-body');
+  const state=$('mk-action-state'), plan=$('mk-action-plan'), approve=$('mk-action-approve'), undo=$('mk-action-undo'), receipt=$('mk-action-receipt');
+  let current=null, proposed='', lastReceipt='', lastUndoToken='', lastBefore=false, lastAction='';
+  const busy=v=>body.classList.toggle('mk-action-spin',v);
+  const message=(html,error=false)=>{receipt.innerHTML=html;receipt.className='mk-action-receipt show'+(error?' mk-action-error':'')};
+  async function api(path,options={}){const r=await fetch(path,{headers:{'Content-Type':'application/json'},...options});const data=await r.json().catch(()=>({error:'Unexpected service response.'}));if(!r.ok)throw new Error(data.error||'Action failed.');return data}
+  function render(s){current=s;$('mk-action-user').textContent=s.user?.displayName||'Jordan Vale';$('mk-action-group').textContent=s.group?.displayName||'ZZ-DEMO-AI-Replay';state.textContent=s.member?'Member · verified':'Not a member · verified';state.classList.toggle('on',!!s.member);if(s.lastReceipt){lastReceipt=s.lastReceipt.id||lastReceipt;lastUndoToken=s.lastReceipt.undoToken||lastUndoToken;lastBefore=!!s.lastReceipt.before;lastAction=s.lastReceipt.action||lastAction}undo.disabled=!lastReceipt||!lastUndoToken||s.lastReceipt?.undone}
+  async function refresh(){busy(true);try{render(await api('/api/identity/actions/status'))}catch(e){state.textContent='Unavailable';message(e.message,true)}finally{busy(false)}}
+  $('mk-action-launch').onclick=()=>{panel.classList.toggle('open');if(panel.classList.contains('open'))refresh()};
+  $('mk-action-close').onclick=()=>panel.classList.remove('open');$('mk-action-refresh').onclick=refresh;
+  $('mk-action-preview').onclick=()=>{if(!current)return;proposed=current.member?'remove_member':'add_member';plan.innerHTML=current.member?'<b>Proposed:</b> Remove Jordan from the isolated demo group.<br><b>Effect:</b> Membership removed; Undo restores the exact prior state.':'<b>Proposed:</b> Add Jordan to the isolated demo group.<br><b>Effect:</b> Membership appears live in Entra; Undo removes it.';plan.classList.add('show');approve.textContent=proposed==='add_member'?'Approve & add':'Approve & remove';approve.disabled=false};
+  approve.onclick=async()=>{if(!proposed)return;busy(true);try{const d=await api('/api/identity/actions/execute',{method:'POST',body:JSON.stringify({action:proposed,approval:'APPROVE'})});lastReceipt=d.receipt.id;lastUndoToken=d.receipt.undoToken;lastBefore=!!d.receipt.before;lastAction=d.receipt.action;render(d.status);undo.disabled=false;approve.disabled=true;plan.classList.remove('show');message('<strong>Verified in Microsoft Entra</strong><br>Before: '+d.receipt.before+' · After: '+d.receipt.after+'<br>Receipt '+d.receipt.id.slice(0,8)+' · Graph '+(d.receipt.graphRequestId||'idempotent'))}catch(e){message(e.message,true)}finally{busy(false)}};
+  undo.onclick=async()=>{busy(true);try{const d=await api('/api/identity/actions/undo',{method:'POST',body:JSON.stringify({receiptId:lastReceipt,action:lastAction,before:lastBefore,undoToken:lastUndoToken,approval:'APPROVE'})});render(d.status);message('<strong>Rollback verified</strong><br>The prior Entra membership state has been restored.');undo.disabled=true}catch(e){message(e.message,true)}finally{busy(false)}};
+})();
+</script>
