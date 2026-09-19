@@ -1,47 +1,87 @@
 import {focusRemoteWindow,watchRemoteFocus} from './desktop-focus.js';
-// A second authenticated gateway frame, targeting a different desktop.
-// Layout changes only hide panels; they never recreate a connected frame.
+import {AGENTS} from './data.js';
+
+// Three protected surfaces. Layout changes hide panes without recreating a connected frame.
 export function installDualStage(root,config,validateGateway,onUserFocus,onAdminFocus){
  const display=root.querySelector('#remote-display');
  const admin=document.createElement('section');admin.id='stage-admin';admin.className='stage-pane';admin.setAttribute('aria-label','Administrator desktop');
- display.before(admin);
- admin.innerHTML='<header class="pane-toolbar"><div><strong>Administrator</strong><small>Manage access & policies</small></div><button type="button" data-remote="focus">Focus admin</button></header>';
- admin.append(display);
+ admin.innerHTML='<header class="pane-toolbar"><div><strong>Administrator</strong><small>Configure and verify in Microsoft Entra</small></div><button type="button" data-remote="focus">Focus admin</button></header>';display.before(admin);admin.append(display);
  const user=document.createElement('section');user.id='stage-user';user.className='stage-pane';user.setAttribute('aria-label','User desktop');
- user.innerHTML=`<header class="pane-toolbar"><div><strong id="stage-user-name">User experience</strong><small>Experience the journey</small></div><button type="button" data-dual="focus" disabled>Focus user</button></header><div class="user-display"><div class="user-welcome"><span class="stage-tag">INDEPENDENT LIVE SESSION</span><h3>The other side of the story.</h3><p>Open the kiosk desktop and sign in with the persona’s Microsoft account in its browser.</p><button class="primary" type="button" data-dual="connect">Open user session</button><p class="session-note">Use the existing protected gateway sign-in. Windows credentials are requested inside the gateway.</p></div></div><footer class="pane-footer"><span id="user-session-status" role="status">Not connected</span><button type="button" data-dual="disconnect" disabled>Disconnect user</button><a id="user-session-direct" target="_blank" rel="noopener noreferrer">Separate tab ↗</a></footer>`;
- admin.after(user);
+ user.innerHTML=`<header class="pane-toolbar"><div><strong id="stage-user-name">User experience</strong><small>Experience the journey</small></div><button type="button" data-dual="user-focus" disabled>Focus user</button></header><div class="user-display"><div class="user-welcome"><span class="stage-tag">INDEPENDENT LIVE SESSION</span><h3>The other side of the story.</h3><p>Open the kiosk desktop and sign in with the persona’s Microsoft account in its browser.</p><button class="primary" type="button" data-dual="user-connect">Open user session</button><p class="session-note">Use the existing protected gateway sign-in. Windows credentials are requested inside the gateway.</p></div></div><footer class="pane-footer"><span id="user-session-status" role="status">Not connected</span><button type="button" data-dual="user-disconnect" disabled>Disconnect user</button><a id="user-session-direct" target="_blank" rel="noopener noreferrer">Separate tab ↗</a></footer>`;
+ const ai=document.createElement('section');ai.id='stage-ai';ai.className='stage-pane';ai.setAttribute('aria-label','Identity AI copilot');
+ ai.innerHTML=`<header class="pane-toolbar ai-pane-toolbar"><div><strong id="stage-ai-name">AI copilot</strong><small>Live Graph evidence · Azure OpenAI reasoning</small></div><button type="button" data-dual="ai-focus" disabled>Focus AI</button></header><div class="ai-display"><div class="ai-welcome"><span class="stage-tag">PRIVATE TENANT AGENT</span><h3>Reason beside the control.</h3><p>Run the tenant-connected agent next to the administrator desktop, then hand the approved action to the admin side.</p><button class="primary" type="button" data-dual="ai-connect">Open live AI copilot</button><p class="session-note">The agent reads Microsoft Graph. Configuration execution remains human approved.</p></div></div><footer class="pane-footer ai-pane-footer"><span id="ai-session-status" role="status">Ready to open</span><button type="button" data-dual="ai-disconnect" disabled>Close AI</button><a id="ai-session-direct" target="_blank" rel="noopener noreferrer">Separate tab ↗</a></footer>`;
+ admin.after(user);user.after(ai);
+
  const toolbar=document.createElement('div');toolbar.className='stage-layout-bar';
- toolbar.innerHTML='<div class="stage-view-buttons" role="group" aria-label="Demo layout"><button type="button" data-stage-view="admin" aria-pressed="false">Admin</button><button type="button" data-stage-view="both" aria-pressed="true">Both</button><button type="button" data-stage-view="user" aria-pressed="false">User</button></div><span>Two desktops · separate sign-ins</span><label class="stage-ratio">Panel balance <input type="range" min="35" max="70" value="60" aria-label="Administrator panel width"></label>';
+ toolbar.innerHTML='<div class="stage-view-buttons" role="group" aria-label="Demo layout"><button type="button" data-stage-view="admin" aria-pressed="false">Admin</button><button type="button" data-stage-view="user" aria-pressed="false">User</button><button type="button" data-stage-view="both" aria-pressed="true">Both</button><button type="button" data-stage-view="ai" aria-pressed="false"><span aria-hidden="true">✦</span> AI</button></div><span class="stage-layout-copy">Admin + user · separate protected desktops</span><label class="stage-ratio">Panel balance <input type="range" min="35" max="70" value="56" aria-label="Administrator panel width"></label>';
  root.querySelector('.remote-context').after(toolbar);
  const steps=document.createElement('ol');steps.className='stage-milestones';steps.setAttribute('aria-label','Demonstration steps');toolbar.after(steps);
- let frame=null,stopFocusWatch=null,timer=null,layout='both',url=null,activeSide='admin';
- const surfaces={admin:display,user:user.querySelector('.user-display')},shields={};
- for(const [side,pane] of Object.entries({admin,user})){
+
+ let userFrame=null,aiFrame=null,stopUserFocus=null,stopAiFocus=null,userTimer=null,layout='both',userUrl=null,agentUrl=AGENTS+'/identity',activeSide='admin';
+ const panes={admin,user,ai},surfaces={admin:display,user:user.querySelector('.user-display'),ai:ai.querySelector('.ai-display')},shields={};
+ const splitLayout=()=>layout==='both'||layout==='ai';
+ const visible=side=>side==='admin'?layout!=='user':side==='user'?(layout==='user'||layout==='both'):layout==='ai';
+
+ for(const [side,pane] of Object.entries(panes)){
   const badge=document.createElement('span');badge.className='pane-state';badge.setAttribute('aria-live','polite');pane.querySelector('.pane-toolbar>div').append(badge);
-  const shield=document.createElement('button');shield.type='button';shield.className='pane-shield';shield.setAttribute('aria-label',`Activate ${side==='admin'?'administrator':'user'} desktop`);
-  shield.innerHTML=`<span class="shield-card"><span class="shield-icon" aria-hidden="true">&#8599;</span><strong>Switch to ${side==='admin'?'administrator':'user'}</strong><small>Click to bring this desktop into focus</small></span>`;
-  surfaces[side].append(shield);shields[side]=shield;
-  shield.addEventListener('click',()=>{setActive(side);if(side==='user'){focusUser();if(!frame)user.querySelector('[data-dual="connect"]').focus();}else{onAdminFocus();if(!display.querySelector('iframe'))display.querySelector('button:not(.pane-shield)')?.focus();}});
+  const shield=document.createElement('button');shield.type='button';shield.className='pane-shield';shield.setAttribute('aria-label',`Activate ${side==='admin'?'administrator':side==='user'?'user':'AI copilot'}`);
+  shield.innerHTML=`<span class="shield-card"><span class="shield-icon" aria-hidden="true">&#8599;</span><strong>Switch to ${side==='admin'?'administrator':side==='user'?'user':'AI copilot'}</strong><small>${side==='ai'?'Run the analysis and review its proposal':'Click to bring this workspace into focus'}</small></span>`;
+  surfaces[side].append(shield);shields[side]=shield;shield.addEventListener('click',()=>focusSide(side));
  }
+
  function setActive(side){
-  if(layout!=='both'&&layout!==side){setLayout(side);return;}
+  if(!visible(side)){setLayout(side==='ai'?'ai':side);return;}
   activeSide=side;root.dataset.activeSide=side;
-  for(const [key,pane] of Object.entries({admin,user})){
-   const selected=key===side;pane.dataset.active=String(selected);shields[key].hidden=selected||layout!=='both';
-   pane.querySelector('.pane-state').textContent=selected?'Active':'Standby';
-   for(const child of surfaces[key].children){if(child!==shields[key])child.inert=!selected&&layout==='both';}
+  for(const [key,pane] of Object.entries(panes)){
+   const selected=key===side,isVisible=visible(key);pane.dataset.active=String(selected);shields[key].hidden=selected||!splitLayout()||!isVisible;
+   pane.querySelector('.pane-state').textContent=!isVisible?'Hidden':selected?'Active':'Standby';
+   for(const child of surfaces[key].children)if(child!==shields[key])child.inert=!selected&&splitLayout()&&isVisible;
   }
  }
- const status=user.querySelector('#user-session-status'),welcome=user.querySelector('.user-welcome'),focus=user.querySelector('[data-dual="focus"]'),disconnect=user.querySelector('[data-dual="disconnect"]');
- try{url=validateGateway(config.userGatewayUrl);}catch{}
- const direct=user.querySelector('#user-session-direct');if(url)direct.href=url;else{direct.hidden=true;user.querySelector('[data-dual="connect"]').disabled=true;status.textContent='User connection needs configuration';}
- function focusUser(){setActive('user');onUserFocus();if(frame)focusRemoteWindow(frame);}
- function setLayout(value){layout=value;root.dataset.stageView=value;admin.hidden=value==='user';user.hidden=value==='admin';toolbar.querySelectorAll('[data-stage-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.stageView===value)));setActive(value==='both'?activeSide:value);if(value==='user')focusUser();if(value==='admin')onAdminFocus();}
- function connect(){if(frame||!url)return;frame=document.createElement('iframe');frame.id='user-session-frame';frame.title='Protected independent kiosk desktop for the demo persona';frame.tabIndex=0;stopFocusWatch=watchRemoteFocus(frame,()=>{setActive('user');onUserFocus();});frame.referrerPolicy='no-referrer';frame.setAttribute('allow','fullscreen');frame.setAttribute('allowfullscreen','');frame.src=url;welcome.hidden=true;focus.disabled=false;disconnect.disabled=false;status.textContent='Opening protected gateway…';frame.addEventListener('load',()=>{clearTimeout(timer);status.textContent='Gateway page opened · sign in inside';if(document.activeElement===frame&&layout!=='admin')focusUser();});frame.addEventListener('error',()=>{clearTimeout(timer);status.textContent='Gateway unavailable · try separate tab';});user.querySelector('.user-display').append(frame);timer=setTimeout(()=>status.textContent='Still waiting · try separate tab',20000);focusUser();}
- function stop(){clearTimeout(timer);stopFocusWatch?.();stopFocusWatch=null;frame?.remove();frame=null;welcome.hidden=false;focus.disabled=true;disconnect.disabled=true;status.textContent='View disconnected · Windows session may remain signed in';}
- toolbar.addEventListener('click',event=>{const b=event.target.closest('[data-stage-view]');if(b)setLayout(b.dataset.stageView);});
+ function focusSide(side){
+  setActive(side);
+  if(side==='admin'){onAdminFocus();if(!display.querySelector('iframe'))display.querySelector('button:not(.pane-shield)')?.focus();}
+  if(side==='user'){onUserFocus();if(userFrame)focusRemoteWindow(userFrame);else user.querySelector('[data-dual="user-connect"]').focus();}
+  if(side==='ai'){if(aiFrame)focusRemoteWindow(aiFrame);else ai.querySelector('[data-dual="ai-connect"]').focus();}
+ }
+
+ const userStatus=user.querySelector('#user-session-status'),userWelcome=user.querySelector('.user-welcome'),userFocus=user.querySelector('[data-dual="user-focus"]'),userDisconnect=user.querySelector('[data-dual="user-disconnect"]');
+ try{userUrl=validateGateway(config.userGatewayUrl);}catch{}
+ const userDirect=user.querySelector('#user-session-direct');if(userUrl)userDirect.href=userUrl;else{userDirect.hidden=true;user.querySelector('[data-dual="user-connect"]').disabled=true;userStatus.textContent='User connection needs configuration';}
+ const aiStatus=ai.querySelector('#ai-session-status'),aiWelcome=ai.querySelector('.ai-welcome'),aiConnect=ai.querySelector('[data-dual="ai-connect"]'),aiFocus=ai.querySelector('[data-dual="ai-focus"]'),aiDisconnect=ai.querySelector('[data-dual="ai-disconnect"]'),aiDirect=ai.querySelector('#ai-session-direct');aiDirect.href=agentUrl;
+
+ function setLayout(value){
+  if(!['admin','user','both','ai'].includes(value))return;
+  layout=value;root.dataset.stageView=value;admin.hidden=value==='user';user.hidden=value==='admin'||value==='ai';ai.hidden=value!=='ai';
+  toolbar.querySelectorAll('[data-stage-view]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.stageView===value)));
+  toolbar.querySelector('.stage-layout-copy').textContent=value==='ai'?'Administrator + AI · analyze, approve, apply, verify':value==='both'?'Admin + user · separate protected desktops':value==='admin'?'Administrator workspace':'User experience';
+  toolbar.querySelector('.stage-ratio').hidden=!splitLayout();
+  shields.admin.querySelector('strong').textContent=value==='ai'?'Apply in administrator':'Switch to administrator';
+  shields.admin.querySelector('small').textContent=value==='ai'?'Execute and verify the approved change in Entra':'Click to bring this workspace into focus';
+  if(value==='ai'){connectAi();setActive('ai');}else if(value==='both')setActive(['admin','user'].includes(activeSide)?activeSide:'admin');else setActive(value);
+  root.dispatchEvent(new CustomEvent('stage-layout-change',{detail:{layout:value}}));
+ }
+
+ function connectUser(){
+  if(userFrame||!userUrl)return;userFrame=document.createElement('iframe');userFrame.id='user-session-frame';userFrame.title='Protected independent kiosk desktop for the demo persona';userFrame.tabIndex=0;stopUserFocus=watchRemoteFocus(userFrame,()=>{setActive('user');onUserFocus();});userFrame.referrerPolicy='no-referrer';userFrame.setAttribute('allow','fullscreen');userFrame.setAttribute('allowfullscreen','');userFrame.src=userUrl;userWelcome.hidden=true;userFocus.disabled=false;userDisconnect.disabled=false;userStatus.textContent='Opening protected gateway…';userFrame.addEventListener('load',()=>{clearTimeout(userTimer);userStatus.textContent='Gateway page opened · sign in inside';if(document.activeElement===userFrame&&layout!=='admin')focusSide('user');});userFrame.addEventListener('error',()=>{clearTimeout(userTimer);userStatus.textContent='Gateway unavailable · try separate tab';});surfaces.user.append(userFrame);userTimer=setTimeout(()=>userStatus.textContent='Still waiting · try separate tab',20000);focusSide('user');
+ }
+ function disconnectUser(){clearTimeout(userTimer);stopUserFocus?.();stopUserFocus=null;userFrame?.remove();userFrame=null;userWelcome.hidden=false;userFocus.disabled=true;userDisconnect.disabled=true;userStatus.textContent='View disconnected · Windows session may remain signed in';}
+ function connectAi(){
+  if(aiFrame)return;aiFrame=document.createElement('iframe');aiFrame.id='identity-agent-frame';aiFrame.title='Private tenant-connected Identity AI agent';aiFrame.tabIndex=0;aiFrame.dataset.agentUrl=agentUrl;stopAiFocus=watchRemoteFocus(aiFrame,()=>setActive('ai'));aiFrame.referrerPolicy='no-referrer';aiFrame.setAttribute('allow','clipboard-read; clipboard-write');aiFrame.src=agentUrl;aiConnect.disabled=true;aiConnect.textContent='Opening agent…';aiFocus.disabled=false;aiDisconnect.disabled=false;aiStatus.textContent='Opening private tenant agent…';aiFrame.addEventListener('load',()=>{aiWelcome.hidden=true;aiStatus.textContent='Agent opened · sign in or run inside';});aiFrame.addEventListener('error',()=>{aiStatus.textContent='Agent unavailable · use separate tab';});surfaces.ai.append(aiFrame);
+ }
+ function disconnectAi(){stopAiFocus?.();stopAiFocus=null;aiFrame?.remove();aiFrame=null;aiWelcome.hidden=false;aiConnect.disabled=false;aiConnect.textContent='Open live AI copilot';aiFocus.disabled=true;aiDisconnect.disabled=true;aiStatus.textContent='AI view closed';}
+
+ toolbar.addEventListener('click',event=>{const button=event.target.closest('[data-stage-view]');if(button)setLayout(button.dataset.stageView);});
  toolbar.querySelector('input').addEventListener('input',event=>root.style.setProperty('--admin-share',event.target.value+'%'));
- user.addEventListener('click',event=>{const a=event.target.closest('[data-dual]')?.dataset.dual;if(a==='connect')connect();if(a==='disconnect')stop();if(a==='focus')focusUser();});
+ user.addEventListener('click',event=>{const action=event.target.closest('[data-dual]')?.dataset.dual;if(action==='user-connect')connectUser();if(action==='user-disconnect')disconnectUser();if(action==='user-focus')focusSide('user');});
+ ai.addEventListener('click',event=>{const action=event.target.closest('[data-dual]')?.dataset.dual;if(action==='ai-connect')connectAi();if(action==='ai-disconnect')disconnectAi();if(action==='ai-focus')focusSide('ai');});
  setLayout('both');
- return {setActive,setLayout,connect,connected:()=>Boolean(frame),focus:focusUser,isFocused:()=>Boolean(frame&&document.activeElement===frame),visible:()=>layout!=='admin',setGuide(g){user.querySelector('#stage-user-name').textContent=g.name+' · user experience';steps.replaceChildren(...g.highlights.map((text,index)=>{const li=document.createElement('li'),n=document.createElement('span'),label=document.createElement('strong');n.textContent=String(index+1);label.textContent=text;li.append(n,label);return li;}));}};
+
+ return {setActive,setLayout,connect:connectUser,connected:()=>Boolean(userFrame),focus:()=>focusSide(activeSide==='ai'?'ai':'user'),isFocused:()=>Boolean((userFrame&&document.activeElement===userFrame)||(aiFrame&&document.activeElement===aiFrame)),visible:()=>layout==='user'||layout==='both',setGuide(g){
+  user.querySelector('#stage-user-name').textContent=g.name+' · user experience';ai.querySelector('#stage-ai-name').textContent=g.name+' · AI copilot';
+  steps.replaceChildren(...g.highlights.map((text,index)=>{const li=document.createElement('li'),n=document.createElement('span'),label=document.createElement('strong');n.textContent=String(index+1);label.textContent=text;li.append(n,label);return li;}));
+  const prompt=`${g.name}: ${g.title}. ${g.why} Read the connected tenant, cite the evidence, preview one bounded action, identify the approval owner, and provide verification and undo steps. Do not claim execution unless audit evidence confirms it.`;
+  const nextUrl=`${AGENTS}/identity?case=${encodeURIComponent(prompt)}#run`;agentUrl=nextUrl;aiDirect.href=nextUrl;
+  if(aiFrame&&aiFrame.dataset.agentUrl!==nextUrl){aiFrame.dataset.agentUrl=nextUrl;aiFrame.src=nextUrl;aiStatus.textContent='Loading this story in the agent…';}
+ }};
 }

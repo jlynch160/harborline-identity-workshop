@@ -47,21 +47,6 @@ function consoleView(person,moment,a,r){
  </section>`;
 }
 
-function liveConsoleView(person,moment,a,r){
- const s=stateFor(person,moment),current=steps[s.step];
- return `<section class="live-ai-console" data-ai-person="${person}" data-ai-moment="${moment}">
-  <div class="live-ai-progress"><span>${escape(current.tag)}</span><strong>${s.step+1} / ${steps.length}</strong></div>
-  <nav class="live-ai-steps" aria-label="AI copilot workflow">${steps.map((x,i)=>`<button type="button" data-ai-run="select" data-ai-step="${i}" class="${i===s.step?'active':''} ${s.visited.has(i)?'visited':''}" aria-label="${escape(x.label)}" aria-current="${i===s.step?'step':'false'}">${i+1}</button>`).join('')}</nav>
-  <div class="live-ai-card"><span>AI COPILOT · ${escape(current.label)}</span><h4>${escape(current.title)}</h4><p>${escape(current.body(a,r))}</p><div><b>Show the client</b>${escape(current.proof)}</div></div>
-  <div class="live-ai-controls"><button type="button" data-ai-run="previous" ${s.step===0?'disabled':''}>← Previous</button><button type="button" data-ai-run="next">${s.step===steps.length-1?'Reset and replay':'Continue →'}</button></div>
- </section>`;
-}
-
-export function liveAiPanel(p,index){
- const m=p.moments[index],a=aiStories[p.id],r=recipes[p.id];
- return `<div class="live-ai-panel"><div class="live-ai-heading"><span>AI + LIVE TENANT</span><h4>${escape(p.name)} · ${escape(m.short)}</h4><p>Keep the agent, Microsoft control and client explanation together while the live desktops remain visible.</p></div>${liveConsoleView(p.id,index,a,r)}<div class="live-ai-actions"><a href="${agentUrl(p,m,a,index)}" target="_blank" rel="noopener noreferrer"><b>Run tenant analysis ↗</b><span>Private agent · live Graph read</span></a><a href="${escape(URLS[r.portal])}" target="_blank" rel="noopener noreferrer"><b>Open Microsoft control ↗</b><span>Apply, verify and undo</span></a><a href="./#${p.id}/${index+1}/ai" target="_blank" rel="noopener noreferrer"><b>Open the full AI story ↗</b><span>Prompt, controls and rehearsal setup</span></a></div><p class="live-ai-boundary">The agent reads the tenant. An authorized human applies and reverses the prepared change in Entra. Advancing this guide never changes the tenant.</p></div>`;
-}
-
 export function aiContent(p,m,index){
  const a=aiStories[p.id],r=recipes[p.id];
  return `<div class="ai-operator">
@@ -77,7 +62,7 @@ export function aiContent(p,m,index){
 document.addEventListener('click',event=>{
  const button=event.target.closest('[data-ai-run]');
  if(!button)return;
- const console=button.closest('.ai-run-console,.live-ai-console');
+ const console=button.closest('.ai-run-console');
  if(!console)return;
  const person=console.dataset.aiPerson,moment=Number(console.dataset.aiMoment),a=aiStories[person],r=recipes[person];
  const current=stateFor(person,moment);
@@ -89,8 +74,7 @@ document.addEventListener('click',event=>{
  }
  current.visited.add(current.step);
  runState.set(key(person,moment),current);
- const view=console.classList.contains('live-ai-console')?liveConsoleView:consoleView;
- const replacement=document.createRange().createContextualFragment(view(person,moment,a,r));
+ const replacement=document.createRange().createContextualFragment(consoleView(person,moment,a,r));
  console.replaceWith(replacement);
- document.querySelector(`.ai-run-console[data-ai-person="${person}"][data-ai-moment="${moment}"] [data-ai-run="select"][data-ai-step="${current.step}"],.live-ai-console[data-ai-person="${person}"][data-ai-moment="${moment}"] [data-ai-run="select"][data-ai-step="${current.step}"]`)?.focus();
+ document.querySelector(`.ai-run-console[data-ai-person="${person}"][data-ai-moment="${moment}"] [data-ai-run="select"][data-ai-step="${current.step}"]`)?.focus();
 });

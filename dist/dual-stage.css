@@ -3,6 +3,19 @@
 #remote-workspace .stage-pane{border:1px solid #ffffff20;border-radius:12px;overflow:hidden;background:#171323;box-shadow:0 8px 24px #0003}
 #remote-workspace .stage-pane[hidden]{display:none}
 #remote-workspace[data-stage-view=both] #stage-admin{flex-basis:calc(var(--admin-share) - 6px)}
+#remote-workspace[data-stage-view=ai] #stage-admin{flex:0 0 calc(var(--admin-share) - 6px)}
+#remote-workspace #stage-ai{background:#0f0b18}
+#remote-workspace .ai-pane-toolbar{background:linear-gradient(110deg,#302049,#171122);border-bottom-color:#79e9c633}
+#remote-workspace .ai-display{flex:1;min-height:0;position:relative;display:flex;background:radial-gradient(circle at 80% 0,#7041972e,transparent 38%),#100b19}
+#remote-workspace .ai-display iframe{border:0;position:absolute;inset:0;width:100%;height:100%;background:#0c0912}
+#remote-workspace .ai-display iframe:focus-visible{outline:2px solid #8ff3cf;outline-offset:-2px}
+#remote-workspace .ai-welcome{position:relative;z-index:2;margin:auto;padding:34px;max-width:520px;text-align:center;color:#f1e9f8;background:#171020e8;border:1px solid #ffffff18;border-radius:16px;box-shadow:0 18px 55px #0006;backdrop-filter:blur(5px)}
+#remote-workspace .ai-welcome h3{font-size:29px;line-height:1.2;margin:18px 0}
+#remote-workspace .ai-welcome p{font-size:15px;line-height:1.65;color:#b9acc5}
+#remote-workspace .ai-welcome .session-note{font-size:11px;color:#8e819a}
+#remote-workspace .ai-welcome .primary{margin-top:8px;background:#74efc8;color:#10362b}
+#remote-workspace .stage-view-buttons [data-stage-view=ai]{color:#bdf5e2}
+#remote-workspace .stage-view-buttons [data-stage-view=ai][aria-pressed=true]{background:linear-gradient(110deg,#574078,#24634e);color:#fff}
 #remote-workspace .stage-pane[data-active=true]{border-color:#6be8bd;box-shadow:0 0 0 1px #6be8bd30,0 8px 24px #0003}
 #remote-workspace .pane-toolbar{min-height:64px;padding:10px 14px;background:linear-gradient(110deg,#242035,#191524);border-bottom:1px solid #ffffff12}
 #remote-workspace .pane-toolbar>div{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:12px;align-items:center;min-width:0}
@@ -33,4 +46,4 @@
 #remote-workspace .pane-shield:focus-visible{outline:3px solid #98f2d2;outline-offset:-4px}
 @media(prefers-reduced-motion:no-preference){#remote-workspace .stage-pane,#remote-workspace .shield-card{transition:border-color .18s,box-shadow .18s,background .18s}}
 @media(max-width:1050px){#remote-workspace .pane-toolbar small{display:none}#remote-workspace .pane-toolbar>div{grid-template-columns:minmax(0,1fr)}#remote-workspace .pane-state{grid-column:1;grid-row:2;justify-self:start;margin-top:4px;padding:2px 0;background:none}}
-@media(max-width:650px){#remote-workspace .remote-stage{padding:7px;gap:8px}#remote-workspace[data-stage-view=both] #stage-admin{flex:1 0 360px}#remote-workspace .pane-toolbar{min-height:56px}#remote-workspace .shield-card{padding:16px 22px}}
+@media(max-width:650px){#remote-workspace .remote-stage{padding:7px;gap:8px}#remote-workspace[data-stage-view=both] #stage-admin,#remote-workspace[data-stage-view=ai] #stage-admin{flex:1 0 360px}#remote-workspace[data-stage-view=ai] .remote-stage{flex-direction:column;overflow:auto}#remote-workspace[data-stage-view=ai] #stage-ai{flex:1 0 430px}#remote-workspace .pane-toolbar{min-height:56px}#remote-workspace .shield-card{padding:16px 22px}.stage-view-buttons button{padding:7px 10px!important}}

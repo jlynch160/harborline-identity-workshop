@@ -1,11 +1,11 @@
 import {architectureView,caseArchitecture} from './architecture.js?v=20260918-topology';
 import {companyPlaybook,caseDeployment} from './company-playbooks.js';
 import {vendorPage,installVendorEvents,lenaGuide} from './vendor.js?v=20260918-topology';
-import {aiContent} from './ai-guide.js?v=20260919-liveai';
+import {aiContent} from './ai-guide.js?v=20260919-aistage4';
 import {homePage} from './home.js';
 import {userMoments,userLinks,userAccount} from './perspectives.js';
 import {buildDemoGuide} from './demo-guide.js';
-import {createRemoteSession} from './remote-session.js?v=20260919-liveai';
+import {createRemoteSession} from './remote-session.js?v=20260919-aistage4';
 import {people,URLS,SOURCE,AGENTS} from './data.js';
 import {agenda,cases} from './workshop.js';
 const app=document.getElementById('app');
