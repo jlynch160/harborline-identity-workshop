@@ -1,4 +1,4 @@
-import {studioOpening} from './studio-opening.js?v=20260921-personas1';
+import {studioOpening} from './studio-opening.js?v=20260921-personas2';
 import {people} from './data.js';
 
 const themes=['Identity continuity','First-day readiness','Shared-device access','Access governance','Offboarding evidence'];

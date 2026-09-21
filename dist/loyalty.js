@@ -1,6 +1,6 @@
 import {storyOpening,aiPage,chapterFrame} from './external-journey-frame.js?v=20260921-proof3';
 import {vendorConfig} from './vendor-config.js?v=20260920-rewards1';
-import {cases} from './workshop.js';
+import {cases} from './workshop.js?v=20260921-personas2';
 const e=value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 
 const stages=[
