@@ -173,7 +173,7 @@ export const architectures={
 'Correlation query / SIEM|Join with defensible keys|Use correlation IDs when available and stable identifiers plus a bounded UTC time window otherwise; record uncertainty.',
 'Evidence timeline|Explain what actually happened|Show the sequence from trigger to identity action to application result, with gaps and named follow-up owners.'],['Identity evidence','Business evidence','Correlated timeline'],'Give clients a defensible outcome rather than a screen full of logs.','Agree telemetry access, retention, clock handling and redaction before the workshop.','Customize log destinations, correlation fields, investigation queries and evidence retention.','Trace one known test transaction across available systems and show any missing link explicitly.','Draft an evidence narrative with links to source records; analysts verify every conclusion.')
 };
-export const momentCases={jordan:[[1,2,7],[9,18],[14,15,28],[17,33]],sofia:[[7,3],[21,23],[20,23],[3,18]],nadia:[[22,18],[4,12],[31,27],[27,31]],sam:[[19,30],[24,26],[13,8],[24,25]],tom:[[27,5],[6,27],[31,34]],kwame:[[27],[33,31],[34]]};
+export const momentCases={elena:[[10,5],[10,26],[14,33],[5,29]],samfed:[[24,20],[24,30],[19,26]],jordan:[[1,2,7],[9,18],[14,15,28],[17,33]],sofia:[[7,3],[21,23],[20,23],[3,18]],nadia:[[22,18],[4,12],[31,27],[27,31]],sam:[[19,30],[24,26],[13,8],[24,25]],tom:[[27,5],[6,27],[31,34]],kwame:[[27],[33,31],[34]]};
 export const architectureSources=[
  ['Tenant placement','https://learn.microsoft.com/en-us/entra/external-id/external-identities-overview'],
  ['B2B trust & access','https://learn.microsoft.com/en-us/entra/external-id/authentication-conditional-access'],

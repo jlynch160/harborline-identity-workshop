@@ -1,5 +1,16 @@
 // Demonstration instructions, not claims about current tenant outcomes.
 export const userMoments = {
+  elena: [
+    ['Register as Elena.', 'Open the Franchise Hub in a private window, choose Owner sign in, then Create one, and show the partner sign-up page.', 'Stop before the verification code unless a mailbox is open; then sign in as the pre-made Elena instead.'],
+    ['Land on the scorecard.', 'After sign-in, show the Franchise Hub scorecard and standards for Ballard Locks House.', 'Point out the Franchise Manager chip in the header; it came from the token.'],
+    ['Try the owner-only page.', 'Open Royalties as Elena and read the refusal.', 'Sign in as Lena in another private window and open Royalties again to show the statements.'],
+    ['Show what does not exist.', 'Search the workforce tenant for petrova.', 'Nothing to reset, nothing to remove: the credential lives with the franchisee.']
+  ],
+  samfed: [
+    ['Clock in on the franchise kiosk.', 'Use sam.fed@fed.arrow-creations.us in a separate browser profile and open My Apps.', 'Follow the redirect to HarborPass and the return to the application.'],
+    ['Work under the same policy.', 'Show the shared-device sign-in frequency and compliance result on the franchise device.', 'Compare with story 4: identical policy, different owner.'],
+    ['Hand the desk over.', 'Sign out and show the next session starts clean.', 'Explain that disabling Sam at HarborPass stops the next sign-in before Entra is involved.']
+  ],
   jordan: [
     ['Start with Jordan’s current experience.', 'Confirm the signed-in identity in My Apps before comparing it with the records in Admin view.', 'Show the applications currently available; keep the contractor and employee accounts distinct.'],
     ['Follow the change into the working day.', 'After an intentionally staged conversion, sign in with the intended employee account.', 'Compare the available applications with the starting state. Without a completed conversion, narrate this as the intended experience.'],
@@ -36,4 +47,4 @@ export const userMoments = {
   ]
 };
 export const userLinks = [['My Apps','myapps'],['My Access','access'],['Security info','security'],['My sign-ins','signin']];
-export const userAccount = p => p.id === 'sam' ? 'sam.fed@fed.arrow-creations.us' : p.account;
+export const userAccount = p => p.id === 'samfed' ? 'sam.fed@fed.arrow-creations.us' : p.account;

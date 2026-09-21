@@ -5,6 +5,45 @@ import {userAccount,userMoments} from './perspectives.js';
 // Authored workshop instructions. These describe checks, never live tenant state.
 const s=(action,why,look)=>({action,why,look});
 const guides={
+  elena:[
+   [[10,5],[
+    s('In the Franchise Hub (private window) choose Owner sign in, then Create one. Show the partner sign-up page and its fields.','Elena onboards herself; the flow collects company and hotel.','Do not complete registration unless a mailbox is open for the code. Switch to the pre-made Elena.'),
+    s('In the External ID tenant open Users and open Elena Petrova. Show company Bayside Hotels LLC and the hotel attribute.','Her identity exists only in the external directory.','Search the workforce tenant for petrova and show there is nothing.'),
+    s('Open External Identities → User flows → Harborline partner sign-up and show the three attached applications.','One flow serves every partner portal.','Note that guests use no separate flow in this lab; the Rewards programme was removed.')
+   ]],
+   [[10,26],[
+    s('Sign in as Elena on the Franchise Hub and land on the scorecard for Ballard Locks House.','The flow lands her in the application with no second step.','Confirm the Franchise Manager chip in the header.'),
+    s('Open the Supplier Desk with the same account and show the no-company screen.','Same sign-in, different application, different decision.','The Supplier Desk reads a different claim; she has none.'),
+    s('Open the sign-in logs in the External ID tenant and find her sign-in.','Evidence of the external sign-in lives in the external tenant.','Point at the application name and the result.')
+   ]],
+   [[14,33],[
+    s('Open Enterprise applications → Harborline Franchise Hub → Users and groups. Show Elena with Franchise.Manager.','The role is the whole authorization model.','Compare with Lena (Franchise.Owner) and jeff (Brand.QA).'),
+    s('As Elena open Royalties. Read the refusal on screen.','The API refused; the page never received statements.','Do not present the refusal as an error.'),
+    s('As Lena open Royalties and show the statements. Then open Team and roles as Elena and show the verified roles claim.','Same page, different token.','The claim is issued by Entra, read by the API.')
+   ]],
+   [[5,29],[
+    s('Search the workforce tenant for petrova.','There is no Harborline account to reset or remove.','Nothing found is the point.'),
+    s('Explain self-service password reset in the external tenant and show the sign-in page link.','Recovery is hers, not the help desk\'s.','Do not reset anything live.'),
+    s('In a rehearsal, remove her role and reload the hub to show the no-role screen. Restore it.','Departure is a role removal.','Restore before the next demo.')
+   ]]
+  ],
+  samfed:[
+   [[24,20],[
+    s('Open Intune → Devices and open the kiosk device. Show enrollment, Entra join and group membership.','The franchisee owns the hardware; Harborline manages it.','Ownership shows as corporate because it is enrolled, not because Harborline bought it.'),
+    s('Open the compliance policy and its assignment to the kiosk device group.','Compliance applies by group, not by owner.','Say the policies are report-only in the lab.'),
+    s('Compare with the managed-hotel kiosk from story 4.','Same profile, two ownership models.','Keep the two devices side by side.')
+   ]],
+   [[24,30],[
+    s('Open Protection → Conditional Access → HL-CA04 and show the shared-device sign-in frequency.','One policy set governs both kiosks.','Report-only: show the what-if result rather than enforcement.'),
+    s('Open Domain names and show fed.arrow-creations.us as Federated and arrow-creations.us as Managed.','Domain ownership and who verifies the password are separate decisions.','Point at HarborPass as the federation target.'),
+    s('Explain that HarborPass stands in for the franchisee\'s Okta, Ping or AD FS.','Swapping the provider is a metadata change.','Do not claim it is a customer\'s real provider.')
+   ]],
+   [[19,26],[
+    s('In a private window open My Apps and enter sam.fed@fed.arrow-creations.us. Follow the redirect to HarborPass.','Home realm discovery hands the sign-in to the franchisee.','Watch the URL leave Entra.'),
+    s('Enter the password at HarborPass and approve the number match. Land back in the application.','The franchisee verified its own employee.','Harborline never saw the credential.'),
+    s('Find the sign-in event in the workforce sign-in logs and show the federated identity provider.','Evidence stays in Entra even though verification happened elsewhere.','If HarborPass cold-starts, wait; it arrives.')
+   ]]
+  ],
  jordan:[
   [[1,2,9],[
    s('In entra.microsoft.com, confirm the workforce directory in the account menu. Open Entra ID → Users → All users; search for vale. Open each matching Jordan record in a separate tab.','Jordan is one person, but the lab has multiple identity records. Choosing the wrong record can make a successful change appear to fail.','Compare the display name, user principal name, object ID, user type and account status. Do not identify the account by display name alone.'),
@@ -130,6 +169,17 @@ const guides={
 };
 
 const highlights = {
+ elena: [
+  ['Show the partner sign-up page','Find Elena in the external tenant','Prove there is no workforce account'],
+  ['Show the flow and its three applications','Land Elena on the scorecard','Find her sign-in in the external logs'],
+  ['Show Franchise.Manager on the hub app','Watch the API refuse royalties','Compare with Lena, the owner'],
+  ['Search the workforce tenant for petrova','Explain recovery in the external tenant','Rehearse the role removal']
+ ],
+ samfed: [
+  ['Open the franchise kiosk in Intune','Check its compliance assignment','Compare with the managed-hotel kiosk'],
+  ['Inspect the shared-device policy','Show the federated domain','Explain HarborPass as the stand-in provider'],
+  ['Sign in as sam.fed','Approve the number match at HarborPass','Find the federated sign-in in the logs']
+ ],
  jordan: [
   ['Find Jordan’s identity records','Confirm the hire and contract dates','Compare the access he has today'],
   ['Check the pre-hire workflow','Verify Jordan’s execution history','Review the proposed identity handover'],
