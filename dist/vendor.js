@@ -1,4 +1,4 @@
-import {storyOpening,aiPage,chapterFrame} from './external-journey-frame.js?v=20260921-proof2';
+import {storyOpening,aiPage,chapterFrame} from './external-journey-frame.js?v=20260921-proof3';
 import {caseArchitecture} from './architecture.js?v=20260918-topology';
 import {companyPlaybook,companyStories} from './company-playbooks.js';
 import {vendorConfig} from './vendor-config.js?v=20260920-live2';

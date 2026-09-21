@@ -1,4 +1,4 @@
-import {storyOpening,aiPage,chapterFrame} from './external-journey-frame.js?v=20260921-proof2';
+import {storyOpening,aiPage,chapterFrame} from './external-journey-frame.js?v=20260921-proof3';
 import {vendorConfig} from './vendor-config.js?v=20260920-rewards1';
 import {cases} from './workshop.js';
 const e=value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));

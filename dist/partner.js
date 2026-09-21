@@ -1,4 +1,4 @@
-import {chapterFrame,storyOpening,aiPage} from './external-journey-frame.js?v=20260921-proof2';
+import {chapterFrame,storyOpening,aiPage} from './external-journey-frame.js?v=20260921-proof3';
 import {vendorConfig} from './vendor-config.js?v=20260921-portals1';
 import {cases} from './workshop.js?v=20260921-readiness1';
 
