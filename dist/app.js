@@ -2,7 +2,7 @@ import {architectureView,caseArchitecture} from './architecture.js?v=20260918-to
 import {caseDeployment} from './company-playbooks.js';
 import {vendorPage,installVendorEvents,lenaGuide} from './vendor.js?v=20260920-live2';
 import {franchisePage,installFranchiseEvents,mayaGuide} from './franchise.js?v=20260920-review1';
-import {loyaltyPage,installLoyaltyEvents,elenaGuide} from './loyalty.js?v=20260920-loyalty3';
+import {loyaltyPage,installLoyaltyEvents,elenaGuide} from './loyalty.js?v=20260920-present1';
 import {aiContent} from './ai-guide.js?v=20260919-aistage4';
 import {homePage} from './home.js?v=20260920-live2';
 import {userMoments,userLinks,userAccount} from './perspectives.js';
