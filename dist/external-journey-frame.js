@@ -1,7 +1,7 @@
 const e=value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 
-export function storyOpening({headline,summary,initials,name,role,truth,outcomes}){
-  return `<section class="external-story-shell"><article class="external-story-intro"><span>THE COMPLETE JOURNEY · EXTERNAL TENANT</span><h2>${headline}</h2><p>${summary}</p><div class="external-story-outcomes">${outcomes.map((item,index)=>`<div><b>0${index+1}</b><strong>${e(item[0])}</strong><small>${e(item[1])}</small></div>`).join('')}</div></article><aside class="external-story-person" data-initials="${e(initials)}"><span>MEET THE PERSON</span><h3>${e(name)}</h3><p>${e(role)}</p><strong>${e(truth)}</strong></aside></section>`;
+export function storyOpening({headline,summary,initials,name,role,truth,outcomes,portrait}){
+  return `<section class="external-story-shell"><article class="external-story-intro"><span>THE BUSINESS STORY</span><h2>${headline}</h2><p>${summary}</p><div class="external-story-outcomes">${outcomes.map((item,index)=>`<div><b>0${index+1}</b><strong>${e(item[0])}</strong><small>${e(item[1])}</small></div>`).join('')}</div></article><aside class="external-story-person" data-initials="${e(initials)}"><img src="${e(portrait)}" alt="Portrait of ${e(name)}"><div><span>MEET THE PERSON</span><h3>${e(name)}</h3><p>${e(role)}</p></div><strong>${e(truth)}</strong></aside></section>`;
 }
 
 export function aiPage({kicker,title,summary,buttonAttr,flow,inputs,outputs,guardrail}){
