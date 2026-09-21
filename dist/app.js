@@ -8,7 +8,7 @@ import {aiContent} from './ai-guide.js?v=20260921-readiness1';
 import {homePage} from './home.js?v=20260921-streamlined2';
 import {userMoments,userLinks,userAccount} from './perspectives.js';
 import {buildDemoGuide} from './demo-guide.js';
-import {createRemoteSession} from './remote-session.js?v=20260921-screenroles1';
+import {createRemoteSession} from './remote-session.js?v=20260921-screenroles2';
 import {remoteConfig} from './remote-config.js';
 import {journeyProgress,wholeJourney} from './journey-narrative.js?v=20260921-streamlined2';
 import {people,URLS,SOURCE,AGENTS} from './data.js?v=20260921-streamlined2';

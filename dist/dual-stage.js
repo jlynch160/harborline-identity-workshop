@@ -60,8 +60,8 @@ export function installDualStage(root,config,validateGateway,onUserFocus,onAdmin
   layout=value;root.dataset.stageView=value;admin.hidden=value==='user';user.hidden=value==='admin'||value==='ai';ai.hidden=value!=='ai';
   toolbar.querySelectorAll('[data-stage-view]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.stageView===value)));
   toolbar.querySelector('.stage-ratio').hidden=!splitLayout();
-  shields.admin.querySelector('strong').textContent=value==='ai'?'Apply in administrator':'Switch to administrator';
-  shields.admin.querySelector('small').textContent=value==='ai'?'Execute and verify the approved change in Entra':'Click to bring this workspace into focus';
+  shields.admin.querySelector('strong').textContent=value==='ai'?'Present the administrator action':'Present the administrator control';
+  shields.admin.querySelector('small').textContent=value==='ai'?'Apply and verify the approved change in Entra':'Configure and verify identity, policy and access';
   if(value==='ai'){connectAi();setActive('ai');}else if(value==='both')setActive(['admin','user'].includes(activeSide)?activeSide:'admin');else setActive(value);
   root.dispatchEvent(new CustomEvent('stage-layout-change',{detail:{layout:value}}));
  }
