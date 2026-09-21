@@ -1,6 +1,6 @@
 import {installLiveCoach} from './live-coach.js';
 import {focusRemoteWindow,watchRemoteFocus} from './desktop-focus.js';
-import {installDualStage} from './dual-stage.js?v=20260919-aistage4';
+import {installDualStage} from './dual-stage.js?v=20260920-rewards1';
 import {remoteConfig} from './remote-config.js';
 import {people} from './data.js';
 

@@ -17,10 +17,11 @@ export function installDualStage(root,config,validateGateway,onUserFocus,onAdmin
  root.querySelector('.remote-context').after(toolbar);
  const steps=document.createElement('ol');steps.className='stage-milestones';steps.setAttribute('aria-label','Demonstration steps');toolbar.after(steps);
 
- let userFrame=null,aiFrame=null,stopUserFocus=null,stopAiFocus=null,userTimer=null,layout='both',userUrl=null,agentUrl=AGENTS+'/identity',activeSide='admin';
+ let userFrame=null,aiFrame=null,stopUserFocus=null,stopAiFocus=null,userTimer=null,layout='both',userUrl=null,userSourceUrl=null,userSourceLabel='protected user desktop',userIsLiveApp=false,agentUrl=AGENTS+'/identity',activeSide='admin';
  const panes={admin,user,ai},surfaces={admin:display,user:user.querySelector('.user-display'),ai:ai.querySelector('.ai-display')},shields={};
  const splitLayout=()=>layout==='both'||layout==='ai';
  const visible=side=>side==='admin'?layout!=='user':side==='user'?(layout==='user'||layout==='both'):layout==='ai';
+ const layoutDescription=()=>layout==='ai'?'Administrator + AI · analyze, approve, apply, verify':layout==='both'?(userIsLiveApp?'Administrator + customer · connected live application':'Admin + user · separate protected desktops'):layout==='admin'?'Administrator workspace':(userIsLiveApp?'Customer application':'User experience');
 
  for(const [side,pane] of Object.entries(panes)){
   const badge=document.createElement('span');badge.className='pane-state';badge.setAttribute('aria-live','polite');pane.querySelector('.pane-toolbar>div').append(badge);
@@ -46,7 +47,7 @@ export function installDualStage(root,config,validateGateway,onUserFocus,onAdmin
  }
 
  const userStatus=user.querySelector('#user-session-status'),userWelcome=user.querySelector('.user-welcome'),userFocus=user.querySelector('[data-dual="user-focus"]'),userDisconnect=user.querySelector('[data-dual="user-disconnect"]');
- try{userUrl=validateGateway(config.userGatewayUrl);}catch{}
+ try{userUrl=validateGateway(config.userGatewayUrl);userSourceUrl=userUrl;}catch{}
  const userDirect=user.querySelector('#user-session-direct');if(userUrl)userDirect.href=userUrl;else{userDirect.hidden=true;user.querySelector('[data-dual="user-connect"]').disabled=true;userStatus.textContent='User connection needs configuration';}
  const aiStatus=ai.querySelector('#ai-session-status'),aiWelcome=ai.querySelector('.ai-welcome'),aiConnect=ai.querySelector('[data-dual="ai-connect"]'),aiFocus=ai.querySelector('[data-dual="ai-focus"]'),aiDisconnect=ai.querySelector('[data-dual="ai-disconnect"]'),aiDirect=ai.querySelector('#ai-session-direct');aiDirect.href=agentUrl;
 
@@ -54,7 +55,7 @@ export function installDualStage(root,config,validateGateway,onUserFocus,onAdmin
   if(!['admin','user','both','ai'].includes(value))return;
   layout=value;root.dataset.stageView=value;admin.hidden=value==='user';user.hidden=value==='admin'||value==='ai';ai.hidden=value!=='ai';
   toolbar.querySelectorAll('[data-stage-view]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.stageView===value)));
-  toolbar.querySelector('.stage-layout-copy').textContent=value==='ai'?'Administrator + AI · analyze, approve, apply, verify':value==='both'?'Admin + user · separate protected desktops':value==='admin'?'Administrator workspace':'User experience';
+  toolbar.querySelector('.stage-layout-copy').textContent=layoutDescription();
   toolbar.querySelector('.stage-ratio').hidden=!splitLayout();
   shields.admin.querySelector('strong').textContent=value==='ai'?'Apply in administrator':'Switch to administrator';
   shields.admin.querySelector('small').textContent=value==='ai'?'Execute and verify the approved change in Entra':'Click to bring this workspace into focus';
@@ -63,7 +64,7 @@ export function installDualStage(root,config,validateGateway,onUserFocus,onAdmin
  }
 
  function connectUser(){
-  if(userFrame||!userUrl)return;userFrame=document.createElement('iframe');userFrame.id='user-session-frame';userFrame.title='Protected independent kiosk desktop for the demo persona';userFrame.tabIndex=0;stopUserFocus=watchRemoteFocus(userFrame,()=>{setActive('user');onUserFocus();});userFrame.referrerPolicy='no-referrer';userFrame.setAttribute('allow','fullscreen');userFrame.setAttribute('allowfullscreen','');userFrame.src=userUrl;userWelcome.hidden=true;userFocus.disabled=false;userDisconnect.disabled=false;userStatus.textContent='Opening protected gateway…';userFrame.addEventListener('load',()=>{clearTimeout(userTimer);userStatus.textContent='Gateway page opened · sign in inside';if(document.activeElement===userFrame&&layout!=='admin')focusSide('user');});userFrame.addEventListener('error',()=>{clearTimeout(userTimer);userStatus.textContent='Gateway unavailable · try separate tab';});surfaces.user.append(userFrame);userTimer=setTimeout(()=>userStatus.textContent='Still waiting · try separate tab',20000);focusSide('user');
+  if(userFrame||!userSourceUrl)return;const isLiveApp=userSourceUrl!==userUrl;userFrame=document.createElement('iframe');userFrame.id='user-session-frame';userFrame.title=isLiveApp?`Live ${userSourceLabel}`:'Protected independent kiosk desktop for the demo persona';userFrame.tabIndex=0;stopUserFocus=watchRemoteFocus(userFrame,()=>{setActive('user');onUserFocus();});userFrame.referrerPolicy='no-referrer';userFrame.setAttribute('allow','fullscreen');userFrame.setAttribute('allowfullscreen','');userFrame.src=userSourceUrl;userWelcome.hidden=true;userFocus.disabled=false;userDisconnect.disabled=false;userStatus.textContent=isLiveApp?`Opening ${userSourceLabel}…`:'Opening protected gateway…';userFrame.addEventListener('load',()=>{clearTimeout(userTimer);userStatus.textContent=isLiveApp?`${userSourceLabel} opened · run the customer journey`:'Gateway page opened · sign in inside';if(document.activeElement===userFrame&&layout!=='admin')focusSide('user');});userFrame.addEventListener('error',()=>{clearTimeout(userTimer);userStatus.textContent=isLiveApp?'Customer site unavailable · use Separate tab':'Gateway unavailable · try separate tab';});surfaces.user.append(userFrame);userTimer=setTimeout(()=>userStatus.textContent='Still waiting · try separate tab',20000);focusSide('user');
  }
  function disconnectUser(){clearTimeout(userTimer);stopUserFocus?.();stopUserFocus=null;userFrame?.remove();userFrame=null;userWelcome.hidden=false;userFocus.disabled=true;userDisconnect.disabled=true;userStatus.textContent='View disconnected · Windows session may remain signed in';}
  function connectAi(){
@@ -78,6 +79,19 @@ export function installDualStage(root,config,validateGateway,onUserFocus,onAdmin
  setLayout('both');
 
  return {setActive,setLayout,connect:connectUser,connected:()=>Boolean(userFrame),focus:()=>focusSide(activeSide==='ai'?'ai':'user'),isFocused:()=>Boolean((userFrame&&document.activeElement===userFrame)||(aiFrame&&document.activeElement===aiFrame)),visible:()=>layout==='user'||layout==='both',setGuide(g){
+  const nextUserUrl=g.liveUrl||userUrl,nextUserLabel=g.liveLabel||'protected user desktop';
+  if(userFrame&&userFrame.src!==nextUserUrl)disconnectUser();
+  userSourceUrl=nextUserUrl;userSourceLabel=nextUserLabel;userIsLiveApp=Boolean(g.liveUrl);
+  userDirect.href=userSourceUrl||'';userDirect.hidden=!userSourceUrl;
+  user.querySelector('[data-dual="user-connect"]').disabled=!userSourceUrl;
+  userWelcome.querySelector('.stage-tag').textContent=g.liveUrl?'LIVE CUSTOMER APPLICATION':'INDEPENDENT LIVE SESSION';
+  userWelcome.querySelector('h3').textContent=g.liveUrl?`Open ${userSourceLabel}.`:'The other side of the story.';
+  userWelcome.querySelector('p').textContent=g.liveUrl?'Run the real customer experience beside the administrator tenant view.':'Open the kiosk desktop and sign in with the persona’s Microsoft account in its browser.';
+  userWelcome.querySelector('.session-note').textContent=g.liveUrl?'Customer credentials stay inside the connected application.':'Use the existing protected gateway sign-in. Windows credentials are requested inside the gateway.';
+  userWelcome.querySelector('[data-dual="user-connect"]').textContent=g.liveUrl?'Open customer site':'Open user session';
+  userDisconnect.textContent=g.liveUrl?'Close customer site':'Disconnect user';
+  userStatus.textContent=g.liveUrl?'Live customer site ready':'Not connected';
+  toolbar.querySelector('.stage-layout-copy').textContent=layoutDescription();
   user.querySelector('#stage-user-name').textContent=g.name+' · user experience';ai.querySelector('#stage-ai-name').textContent=g.name+' · AI copilot';
   steps.replaceChildren(...g.highlights.map((text,index)=>{const li=document.createElement('li'),n=document.createElement('span'),label=document.createElement('strong');n.textContent=String(index+1);label.textContent=text;li.append(n,label);return li;}));
   const prompt=`${g.name}: ${g.title}. ${g.why} Read the connected tenant, cite the evidence, preview one bounded action, identify the approval owner, and provide verification and undo steps. Do not claim execution unless audit evidence confirms it.`;
