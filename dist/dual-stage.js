@@ -17,11 +17,11 @@ export function installDualStage(root,config,validateGateway,onUserFocus,onAdmin
  root.querySelector('.remote-context').after(toolbar);
  const steps=document.createElement('ol');steps.className='stage-milestones';steps.setAttribute('aria-label','Demonstration steps');toolbar.after(steps);
 
- let userFrame=null,aiFrame=null,stopUserFocus=null,stopAiFocus=null,userTimer=null,layout='both',userUrl=null,userSourceUrl=null,userSourceLabel='protected user desktop',userIsLiveApp=false,agentUrl=AGENTS+'/identity',activeSide='admin';
+ let userFrame=null,aiFrame=null,stopUserFocus=null,stopAiFocus=null,userTimer=null,layout='both',userUrl=null,userSourceUrl=null,userSourceLabel='protected user desktop',userSourceKind='customer application',userIsLiveApp=false,agentUrl=AGENTS+'/identity',activeSide='admin';
  const panes={admin,user,ai},surfaces={admin:display,user:user.querySelector('.user-display'),ai:ai.querySelector('.ai-display')},shields={};
  const splitLayout=()=>layout==='both'||layout==='ai';
  const visible=side=>side==='admin'?layout!=='user':side==='user'?(layout==='user'||layout==='both'):layout==='ai';
- const layoutDescription=()=>layout==='ai'?'Administrator + AI · analyze, approve, apply, verify':layout==='both'?(userIsLiveApp?'Administrator + customer · connected live application':'Admin + user · separate protected desktops'):layout==='admin'?'Administrator workspace':(userIsLiveApp?'Customer application':'User experience');
+ const layoutDescription=()=>layout==='ai'?'Administrator + AI · analyze, approve, apply, verify':layout==='both'?(userIsLiveApp?`Administrator + ${userSourceKind} · connected live application`:'Admin + user · separate protected desktops'):layout==='admin'?'Administrator workspace':(userIsLiveApp?userSourceKind:'User experience');
 
  for(const [side,pane] of Object.entries(panes)){
   const badge=document.createElement('span');badge.className='pane-state';badge.setAttribute('aria-live','polite');pane.querySelector('.pane-toolbar>div').append(badge);
@@ -81,15 +81,15 @@ export function installDualStage(root,config,validateGateway,onUserFocus,onAdmin
  return {setActive,setLayout,connect:connectUser,connected:()=>Boolean(userFrame),focus:()=>focusSide(activeSide==='ai'?'ai':'user'),isFocused:()=>Boolean((userFrame&&document.activeElement===userFrame)||(aiFrame&&document.activeElement===aiFrame)),visible:()=>layout==='user'||layout==='both',setGuide(g){
   const nextUserUrl=g.liveUrl||userUrl,nextUserLabel=g.liveLabel||'protected user desktop';
   if(userFrame&&userFrame.src!==nextUserUrl)disconnectUser();
-  userSourceUrl=nextUserUrl;userSourceLabel=nextUserLabel;userIsLiveApp=Boolean(g.liveUrl);
+  userSourceUrl=nextUserUrl;userSourceLabel=nextUserLabel;userSourceKind=g.liveKind||'customer application';userIsLiveApp=Boolean(g.liveUrl);
   userDirect.href=userSourceUrl||'';userDirect.hidden=!userSourceUrl;
   user.querySelector('[data-dual="user-connect"]').disabled=!userSourceUrl;
-  userWelcome.querySelector('.stage-tag').textContent=g.liveUrl?'LIVE CUSTOMER APPLICATION':'INDEPENDENT LIVE SESSION';
+  userWelcome.querySelector('.stage-tag').textContent=g.liveUrl?`LIVE ${userSourceKind.toUpperCase()}`:'INDEPENDENT LIVE SESSION';
   userWelcome.querySelector('h3').textContent=g.liveUrl?`Open ${userSourceLabel}.`:'The other side of the story.';
-  userWelcome.querySelector('p').textContent=g.liveUrl?'Run the real customer experience beside the administrator tenant view.':'Open the kiosk desktop and sign in with the persona’s Microsoft account in its browser.';
-  userWelcome.querySelector('.session-note').textContent=g.liveUrl?'Customer credentials stay inside the connected application.':'Use the existing protected gateway sign-in. Windows credentials are requested inside the gateway.';
-  userWelcome.querySelector('[data-dual="user-connect"]').textContent=g.liveUrl?'Open customer site':'Open user session';
-  userDisconnect.textContent=g.liveUrl?'Close customer site':'Disconnect user';
+  userWelcome.querySelector('p').textContent=g.liveUrl?`Run the real ${userSourceKind} beside the administrator tenant view.`:'Open the kiosk desktop and sign in with the persona’s Microsoft account in its browser.';
+  userWelcome.querySelector('.session-note').textContent=g.liveUrl?'External credentials stay inside the connected application.':'Use the existing protected gateway sign-in. Windows credentials are requested inside the gateway.';
+  userWelcome.querySelector('[data-dual="user-connect"]').textContent=g.liveUrl?`Open ${userSourceKind}`:'Open user session';
+  userDisconnect.textContent=g.liveUrl?`Close ${userSourceKind}`:'Disconnect user';
   userStatus.textContent=g.liveUrl?'Live customer site ready':'Not connected';
   toolbar.querySelector('.stage-layout-copy').textContent=layoutDescription();
   user.querySelector('#stage-user-name').textContent=g.name+' · user experience';ai.querySelector('#stage-ai-name').textContent=g.name+' · AI copilot';
