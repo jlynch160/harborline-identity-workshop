@@ -3,8 +3,10 @@ import {readFile,access} from 'node:fs/promises';
 import {people,URLS} from '../dist/data.js';
 import {agenda,cases} from '../dist/workshop.js';
 import {architectures,momentCases} from '../dist/architecture-models.js';
-assert.equal(people.length,6);
-assert.equal(new Set(people.map(p=>p.id)).size,6);
+import {nadiaGuide} from '../dist/partner.js';
+assert.equal(people.length,5);
+assert.equal(new Set(people.map(p=>p.id)).size,5);
+assert.equal(nadiaGuide().cases.length,8);
 assert.deepEqual(cases.map(c=>c.id),Array.from({length:34},(_,i)=>i+1));
 assert.equal(agenda.reduce((sum,a)=>sum+a.minutes,0),480);
 let previousEnd=null;
@@ -16,4 +18,4 @@ for(const c of cases){const a=architectures[c.id];assert.ok(a,`Missing architect
 for(const p of people){assert.equal(momentCases[p.id].length,p.moments.length);for(const ids of momentCases[p.id])for(const id of ids)assert.ok(p.cases.includes(id),`Architecture ${id} is not connected to ${p.id}`);}
 const html=await readFile(new URL('../dist/index.html',import.meta.url),'utf8');
 for(const [,asset] of html.matchAll(/(?:src|href)="\.\/([^"]+)"/g))await access(new URL('../dist/'+asset,import.meta.url));
-console.log('Validated six personas, 22 moments, 34 use cases, all portal mappings, contiguous 480-minute agenda and local entrypoint assets.');
+console.log('Validated five Workforce personas, Nadia’s External ID journey, 34 use cases, all portal mappings, contiguous 480-minute agenda and local entrypoint assets.');

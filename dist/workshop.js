@@ -1,14 +1,14 @@
 export const agenda=[
-{time:'09:00',end:'09:20',minutes:20,title:'The people behind the architecture',detail:'Agree client priorities, meet the six personas, and establish the lab boundaries.',person:0},
+{time:'09:00',end:'09:20',minutes:20,title:'The people behind the architecture',detail:'Agree client priorities, meet the nine personas across both identity models, and establish the lab boundaries.',person:0},
 {time:'09:20',end:'10:35',minutes:75,title:'Jordan · a change of identity',detail:'Conversion, source authority, app roles, claims, access packages and the prepared conversion agent.',person:0},
 {time:'10:35',end:'10:50',minutes:15,title:'Morning break',detail:'Keep the next tenant screens ready.'},
 {time:'10:50',end:'11:45',minutes:55,title:'Sofia · a first day that works',detail:'Pre-hire setup, authentication bootstrap, frontline devices and actual application access.',person:1},
-{time:'11:45',end:'12:30',minutes:45,title:'Nadia · remote from day one',detail:'Remote provisioning configuration, external authentication and contractor access boundaries.',person:2},
+{time:'11:45',end:'12:30',minutes:45,title:'Nadia · partner developer access',detail:'External ID registration, trusted partner verification, consent, scoped API authorization, step-up and expiration.',route:'nadia/experience'},
 {time:'12:30',end:'13:15',minutes:45,title:'Lunch',detail:'A full reset before the frontline and governance stories.'},
-{time:'13:15',end:'14:25',minutes:70,title:'Sam · the night shift',detail:'Federation, shared-device policy, recovery, kiosk handover and the prepared kiosk agent.',person:3},
+{time:'13:15',end:'14:25',minutes:70,title:'Sam · the night shift',detail:'Federation, shared-device policy, recovery, kiosk handover and the prepared kiosk agent.',person:2},
 {time:'14:25',end:'14:40',minutes:15,title:'Afternoon break',detail:'Verify the Tom and Kwame starting states.'},
-{time:'14:40',end:'15:30',minutes:50,title:'Tom · the access left behind',detail:'Expired contracts, workflow scope, staged reviews and the prepared review agent.',person:4},
-{time:'15:30',end:'16:15',minutes:45,title:'Kwame · an accountable departure',detail:'Contrast account states, verify control execution, and connect the evidence.',person:5},
+{time:'14:40',end:'15:30',minutes:50,title:'Tom · the access left behind',detail:'Expired contracts, workflow scope, staged reviews and the prepared review agent.',person:3},
+{time:'15:30',end:'16:15',minutes:45,title:'Kwame · an accountable departure',detail:'Contrast account states, verify control execution, and connect the evidence.',person:4},
 {time:'16:15',end:'17:00',minutes:45,title:'From the lab to your environment',detail:'Return to client questions. Agree priorities, owners, next actions and acceptance evidence.'}
 ];
 // Titles and configuration descriptions are adapted from the supplied reference hub.
