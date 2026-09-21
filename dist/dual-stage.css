@@ -47,3 +47,29 @@
 @media(prefers-reduced-motion:no-preference){#remote-workspace .stage-pane,#remote-workspace .shield-card{transition:border-color .18s,box-shadow .18s,background .18s}}
 @media(max-width:1050px){#remote-workspace .pane-toolbar small{display:none}#remote-workspace .pane-toolbar>div{grid-template-columns:minmax(0,1fr)}#remote-workspace .pane-state{grid-column:1;grid-row:2;justify-self:start;margin-top:4px;padding:2px 0;background:none}}
 @media(max-width:650px){#remote-workspace .remote-stage{padding:7px;gap:8px}#remote-workspace[data-stage-view=both] #stage-admin,#remote-workspace[data-stage-view=ai] #stage-admin{flex:1 0 360px}#remote-workspace[data-stage-view=ai] .remote-stage{flex-direction:column;overflow:auto}#remote-workspace[data-stage-view=ai] #stage-ai{flex:1 0 430px}#remote-workspace .pane-toolbar{min-height:56px}#remote-workspace .shield-card{padding:16px 22px}.stage-view-buttons button{padding:7px 10px!important}}
+
+/* Audience-first screen roles and active-screen handoff */
+#remote-workspace .stage-layout-bar{display:grid;grid-template-columns:auto minmax(300px,1fr) auto;gap:16px;align-items:center;padding:9px 16px;background:linear-gradient(90deg,#171120,#21152f)}
+#remote-workspace .stage-view-buttons{display:flex;flex-wrap:wrap;gap:4px}
+#remote-workspace .stage-view-buttons button{padding:8px 12px;font-size:11px;font-weight:700;letter-spacing:.01em}
+#remote-workspace .stage-active-callout{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto;column-gap:11px;align-items:center;min-width:0;padding:7px 12px;border:1px solid #74ebc73b;border-radius:10px;background:#10251f99}
+#remote-workspace .stage-active-callout>span{grid-row:1/3;padding:5px 7px;border-radius:6px;background:#6ae3bd1c;color:#8df3d2;font-size:9px;font-weight:850;letter-spacing:.11em;white-space:nowrap}
+#remote-workspace .stage-active-callout strong{overflow:hidden;color:#f5fff9;font-size:12px;text-overflow:ellipsis;white-space:nowrap}
+#remote-workspace .stage-active-callout small{overflow:hidden;color:#9fc1b5;font-size:10px;text-overflow:ellipsis;white-space:nowrap}
+#remote-workspace .pane-toolbar>div{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:'role title state' 'role subtitle state';column-gap:11px;align-items:center;min-width:0}
+#remote-workspace .pane-role{grid-area:role;align-self:stretch;display:grid;place-items:center;max-width:72px;padding:5px 7px;border:1px solid #7ce8c538;border-radius:8px;background:#69e0ba0b;color:#8cf0d0;font-size:8px;font-weight:850;line-height:1.25;letter-spacing:.08em;text-align:center}
+#remote-workspace .pane-toolbar strong{grid-area:title;grid-column:auto;font-size:13px}
+#remote-workspace .pane-toolbar small{grid-area:subtitle;grid-column:auto}
+#remote-workspace .pane-state{grid-area:state;grid-column:auto;grid-row:auto;padding:6px 9px;font-size:9px;font-weight:800;letter-spacing:.08em}
+#remote-workspace .stage-pane[data-active=true]{border-color:#75f0c9;box-shadow:0 0 0 2px #75f0c92f,0 0 34px #39dca518,0 12px 34px #0005}
+#remote-workspace .stage-pane[data-active=true] .pane-toolbar{background:linear-gradient(110deg,#183b33,#1a1725)}
+#remote-workspace .stage-pane[data-active=true] .pane-role{border-color:#8af4d1;background:#75e7c11c;color:#c6ffed}
+#remote-workspace .stage-pane:not([data-active=true]) .pane-toolbar{filter:saturate(.7);opacity:.82}
+#remote-workspace .pane-shield{background:linear-gradient(145deg,#100c1870,#120d1cba);backdrop-filter:blur(2px) saturate(.35)}
+#remote-workspace .shield-card{max-width:330px;padding:23px 28px;border-color:#ffffff2f;background:#181221e8}
+#remote-workspace .shield-role{color:#8ceecd;font-size:9px;font-weight:850;letter-spacing:.12em}
+#remote-workspace .shield-card strong{font-size:16px}
+#remote-workspace .shield-card small{max-width:280px;font-size:12px}
+#remote-workspace .pane-toolbar>button{font-weight:750}
+@media(max-width:1250px){#remote-workspace .stage-layout-bar{grid-template-columns:1fr auto}.stage-active-callout{grid-row:2;grid-column:1/-1}.stage-ratio{grid-row:1;grid-column:2}.stage-view-buttons{grid-column:1}.pane-role{display:none!important}}
+@media(max-width:720px){#remote-workspace .stage-layout-bar{grid-template-columns:1fr}.stage-ratio{display:none!important}.stage-active-callout{grid-row:auto;grid-column:1}.stage-view-buttons button{flex:1}.stage-active-callout small{white-space:normal}.pane-toolbar>div{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:'title state' 'subtitle state'}}
