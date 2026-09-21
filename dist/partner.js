@@ -1,6 +1,6 @@
 import {chapterFrame,storyOpening,aiPage} from './external-journey-frame.js';
 import {vendorConfig} from './vendor-config.js?v=20260921-portals1';
-import {cases} from './workshop.js';
+import {cases} from './workshop.js?v=20260921-readiness1';
 
 const e=value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 let view='experience';

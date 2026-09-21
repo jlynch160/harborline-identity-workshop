@@ -49,12 +49,14 @@ function consoleView(person,moment,a,r){
 
 export function aiContent(p,m,index){
  const a=aiStories[p.id],r=recipes[p.id];
+ const rehearsalNote=p.id==='jordan'?'<b>PRIMARY LIVE AI ACTION</b><span>Add the prepared test identity to <code>ZZ-DEMO-AI-Replay</code>, verify the membership and audit event, undo the membership, then verify the restored state.</span>':'<b>PLANNING AND EXPLANATION</b><span>Use this journey to show analysis and a preview. The workshop’s single live write action is Jordan’s rehearsed Add → Verify → Undo sequence in <code>ZZ-DEMO-AI-Replay</code>.</span>';
  return `<div class="ai-operator">
   <header class="ai-hero"><div><span class="ai-label">AI IN THE FLOW OF WORK · ${escape(p.name)}</span><h3>${escape(a.title)}</h3><p>${escape(a.benefit)}</p></div><div class="ai-capabilities"><span><i></i>Live Graph read</span><span>Azure OpenAI reasoning</span><span>Human approval</span><span>Reversible rehearsal</span></div></header>
   <section class="ai-moment-focus"><div><span>THIS MOMENT · ${escape(m.short)}</span><strong>${escape(a.moments[index])}</strong></div><p><b>Decision owner</b>${escape(a.decision)}</p></section>
   ${consoleView(p.id,index,a,r)}
   <div class="ai-launch-grid"><a class="ai-launch-card agent" href="${agentUrl(p,m,a,index)}" target="_blank" rel="noopener noreferrer"><span>01 · PRIVATE AGENT</span><strong>Run tenant-connected analysis ↗</strong><p>Use the signed-in Identity Agents app to read current Microsoft Graph evidence and generate a cited recommendation.</p></a><a class="ai-launch-card portal" href="${escape(URLS[r.portal])}" target="_blank" rel="noopener noreferrer"><span>02 · MICROSOFT CONTROL</span><strong>Open ${escape(r.control)} ↗</strong><p>Apply, verify and reverse the approved rehearsal while the client watches the tenant state change.</p></a></div>
   <details class="ai-script"><summary>Presenter script and example prompt</summary><blockquote>“For ${escape(p.name)}, focus on ${escape(m.short.toLowerCase())}. ${escape(a.moments[index])} Use current tenant evidence, cite the records, separate facts from inference, preview one bounded reversible action, and give me the exact verification and undo steps.”</blockquote><div class="ai-boundary"><b>Live boundary</b><span>The private agent reads the connected tenant. This public workshop stores no tenant credential and performs no write. Apply and undo stay behind Microsoft authorization and a visible human decision.</span></div></details>
+  <div class="ai-demo-prereq">${rehearsalNote}</div>
   <div class="ai-demo-prereq"><b>One-time rehearsal setup</b><span>Prepare a non-production user and the unassigned <code>ZZ-DEMO-AI-Replay</code> security group. Capture the starting membership before the session. Never use a production entitlement, account disablement, credential reset or Conditional Access enforcement as the reversible stage demo.</span></div>
  </div>`;
 }

@@ -1,15 +1,16 @@
 export const agenda=[
 {time:'09:00',end:'09:20',minutes:20,title:'The people behind the architecture',detail:'Agree client priorities, meet the nine personas across both identity models, and establish the lab boundaries.',person:0},
-{time:'09:20',end:'10:35',minutes:75,title:'Jordan · a change of identity',detail:'Conversion, source authority, app roles, claims, access packages and the prepared conversion agent.',person:0},
-{time:'10:35',end:'10:50',minutes:15,title:'Morning break',detail:'Keep the next tenant screens ready.'},
-{time:'10:50',end:'11:45',minutes:55,title:'Sofia · a first day that works',detail:'Pre-hire setup, authentication bootstrap, frontline devices and actual application access.',person:1},
-{time:'11:45',end:'12:30',minutes:45,title:'Nadia · partner developer access',detail:'External ID registration, trusted partner verification, consent, scoped API authorization, step-up and expiration.',route:'nadia/experience'},
-{time:'12:30',end:'13:15',minutes:45,title:'Lunch',detail:'A full reset before the frontline and governance stories.'},
-{time:'13:15',end:'14:25',minutes:70,title:'Sam · the night shift',detail:'Federation, shared-device policy, recovery, kiosk handover and the prepared kiosk agent.',person:2},
-{time:'14:25',end:'14:40',minutes:15,title:'Afternoon break',detail:'Verify the Tom and Kwame starting states.'},
-{time:'14:40',end:'15:30',minutes:50,title:'Tom · the access left behind',detail:'Expired contracts, workflow scope, staged reviews and the prepared review agent.',person:3},
-{time:'15:30',end:'16:15',minutes:45,title:'Kwame · an accountable departure',detail:'Contrast account states, verify control execution, and connect the evidence.',person:4},
-{time:'16:15',end:'17:00',minutes:45,title:'From the lab to your environment',detail:'Return to client questions. Agree priorities, owners, next actions and acceptance evidence.'}
+{time:'09:20',end:'10:20',minutes:60,title:'Jordan · a change of identity',detail:'Workforce identity continuity, source authority and the primary reversible AI action: Add → Verify → Undo in ZZ-DEMO-AI-Replay.',person:0},
+{time:'10:20',end:'10:35',minutes:15,title:'Morning break',detail:'Keep the next tenant screens ready.'},
+{time:'10:35',end:'11:20',minutes:45,title:'Sofia · a first day that works',detail:'Pre-hire setup, authentication bootstrap, frontline devices and actual application access.',person:1},
+{time:'11:20',end:'12:20',minutes:60,title:'Nadia · primary External ID proof',detail:'Complete sign-up → allow → deny → evidence: branded registration, trusted partner mapping, scoped sandbox access, production denial and correlated proof.',route:'nadia/experience'},
+{time:'12:20',end:'13:00',minutes:40,title:'Lunch',detail:'Reset Nadia’s test scope and prepare the afternoon journeys.'},
+{time:'13:00',end:'13:55',minutes:55,title:'Sam · the night shift',detail:'Federation, shared-device policy, recovery, kiosk handover and the prepared kiosk agent.',person:2},
+{time:'13:55',end:'14:40',minutes:45,title:'Maya · franchise boundaries',detail:'External ID registration, franchise verification, location-scoped authority, an allowed location and a denied location.',route:'maya/experience'},
+{time:'14:40',end:'14:55',minutes:15,title:'Afternoon break',detail:'Reset the franchise application and verify the governance starting states.'},
+{time:'14:55',end:'15:35',minutes:40,title:'Tom · the access left behind',detail:'Expired contracts, workflow scope, staged reviews and the prepared review agent.',person:3},
+{time:'15:35',end:'16:10',minutes:35,title:'Kwame · an accountable departure',detail:'Contrast account states, verify control execution, and connect the evidence.',person:4},
+{time:'16:10',end:'17:00',minutes:50,title:'From the lab to your environment',detail:'Map Workforce and External ID decisions to client priorities, owners, next actions and acceptance evidence.'}
 ];
 // Titles and configuration descriptions are adapted from the supplied reference hub.
 // "Built" is a source-reported state, never a live connection or execution claim.
