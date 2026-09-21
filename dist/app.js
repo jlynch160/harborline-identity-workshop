@@ -1,8 +1,8 @@
 import {architectureView,caseArchitecture} from './architecture.js?v=20260918-topology';
 import {caseDeployment} from './company-playbooks.js';
-import {vendorPage,installVendorEvents,lenaGuide} from './vendor.js?v=20260920-live2';
-import {franchisePage,installFranchiseEvents,mayaGuide} from './franchise.js?v=20260920-review1';
-import {loyaltyPage,installLoyaltyEvents,elenaGuide} from './loyalty.js?v=20260920-present1';
+import {vendorPage,installVendorEvents,lenaGuide} from './vendor.js?v=20260920-twoside1';
+import {franchisePage,installFranchiseEvents,mayaGuide} from './franchise.js?v=20260920-twoside1';
+import {loyaltyPage,installLoyaltyEvents,elenaGuide} from './loyalty.js?v=20260920-twoside1';
 import {aiContent} from './ai-guide.js?v=20260919-aistage4';
 import {homePage} from './home.js?v=20260920-live2';
 import {userMoments,userLinks,userAccount} from './perspectives.js';
@@ -21,7 +21,7 @@ let state={person:0,moment:0,tab:'story',present:false,home:true,vendor:false,fr
 const presenter=new URLSearchParams(location.search).get('view')==='presenter';
 const channel=typeof BroadcastChannel!=='undefined'?new BroadcastChannel('harborline-workshop-v1'):null;
 const tabs=[['story','The story'],['architecture','Architecture'],['setup','Admin view'],['user','User view'],['live','Live demo'],['evidence','Evidence'],['ai','How AI helps']];
-function readHash(){const bits=location.hash.slice(1).split('/');state.vendor=bits[0]==='lena';state.franchise=bits[0]==='maya';state.loyalty=bits[0]==='elena';state.vendorView=['experience','explain','prove'].includes(bits[1])?bits[1]:'experience';state.franchiseView=['experience','architecture','evidence'].includes(bits[1])?bits[1]:'experience';state.loyaltyView=['experience','architecture','evidence'].includes(bits[1])?bits[1]:'experience';const i=people.findIndex(p=>p.id===bits[0]);state.home=i<0&&!state.vendor&&!state.franchise&&!state.loyalty;if(i>=0){state.person=i;state.moment=Math.min(Math.max(0,(Number(bits[1])||1)-1),people[i].moments.length-1);state.tab=tabs.some(t=>t[0]===bits[2])?bits[2]:'story';}}
+function readHash(){const bits=location.hash.slice(1).split('/');state.vendor=bits[0]==='lena';state.franchise=bits[0]==='maya';state.loyalty=bits[0]==='elena';state.vendorView=['experience','explain','live','prove'].includes(bits[1])?bits[1]:'experience';state.franchiseView=['experience','architecture','live','evidence'].includes(bits[1])?bits[1]:'experience';state.loyaltyView=['experience','architecture','live','evidence'].includes(bits[1])?bits[1]:'experience';const i=people.findIndex(p=>p.id===bits[0]);state.home=i<0&&!state.vendor&&!state.franchise&&!state.loyalty;if(i>=0){state.person=i;state.moment=Math.min(Math.max(0,(Number(bits[1])||1)-1),people[i].moments.length-1);state.tab=tabs.some(t=>t[0]===bits[2])?bits[2]:'story';}}
 readHash();
 const palette=['#20f593','#b98aff','#68e9cb','#d5aeff','#8ccfff','#a6eaa1'];
 const tabIcons={story:'signal',architecture:'grid',setup:'grid',user:'screen',live:'play',evidence:'signal',ai:'arrow'};
