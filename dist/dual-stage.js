@@ -17,7 +17,7 @@ export function installDualStage(root,config,validateGateway,onUserFocus,onAdmin
  root.querySelector('.remote-context').after(toolbar);
  const steps=document.createElement('ol');steps.className='stage-milestones';steps.setAttribute('aria-label','Demonstration steps');toolbar.after(steps);
 
- let userFrame=null,aiFrame=null,stopUserFocus=null,stopAiFocus=null,userTimer=null,layout='both',userUrl=null,userSourceUrl=null,userSourceLabel='protected user desktop',userSourceKind='customer application',userIsLiveApp=false,userPersonName='User',agentUrl=AGENTS+'/identity',activeSide='admin';
+ let userFrame=null,aiFrame=null,stopUserFocus=null,stopAiFocus=null,userTimer=null,layout='both',userUrl=null,userSourceUrl=null,userSourceLabel='protected user desktop',userSourceKind='customer application',userIsLiveApp=false,userPersonName='User',agentUrl=AGENTS+'/identity',activeSide='admin',currentGuideName=null;
  const panes={admin,user,ai},surfaces={admin:display,user:user.querySelector('.user-display'),ai:ai.querySelector('.ai-display')},shields={};
  const splitLayout=()=>layout==='both'||layout==='ai';
  const visible=side=>side==='admin'?layout!=='user':side==='user'?(layout==='user'||layout==='both'):layout==='ai';
@@ -82,6 +82,7 @@ export function installDualStage(root,config,validateGateway,onUserFocus,onAdmin
  setLayout('both');
 
  return {setActive,setLayout,connect:connectUser,connected:()=>Boolean(userFrame),focus:()=>focusSide(activeSide==='ai'?'ai':'user'),isFocused:()=>Boolean((userFrame&&document.activeElement===userFrame)||(aiFrame&&document.activeElement===aiFrame)),visible:()=>layout==='user'||layout==='both',setGuide(g){
+  const changedPersona=currentGuideName!==null&&currentGuideName!==g.name;currentGuideName=g.name;
   const nextUserUrl=g.liveUrl||userUrl,nextUserLabel=g.liveLabel||'protected user desktop';
   if(userFrame&&userFrame.src!==nextUserUrl)disconnectUser();
   userSourceUrl=nextUserUrl;userSourceLabel=nextUserLabel;userSourceKind=g.liveKind||'customer application';userIsLiveApp=Boolean(g.liveUrl);
@@ -95,7 +96,7 @@ export function installDualStage(root,config,validateGateway,onUserFocus,onAdmin
   userDisconnect.textContent=g.liveUrl?`Close ${userSourceKind}`:'Disconnect user';
   userStatus.textContent=g.liveUrl?'Live customer site ready':'Not connected';
   userPersonName=g.name;user.querySelector('#stage-user-name').textContent=g.name+' · '+(g.liveKind||'user experience');user.querySelector('#stage-user-purpose').textContent=g.liveUrl?`Live ${g.liveKind||'application'} · show the sign-in and enforced outcome`:'Separate protected desktop · show the person’s experience';ai.querySelector('#stage-ai-name').textContent=g.name+' · AI copilot';
-  setActive(activeSide);
+  if(changedPersona)setLayout('both');else setActive(activeSide);
   steps.replaceChildren(...g.highlights.map((text,index)=>{const li=document.createElement('li'),n=document.createElement('span'),label=document.createElement('strong');n.textContent=String(index+1);label.textContent=text;li.append(n,label);return li;}));
   const prompt=`${g.name}: ${g.title}. ${g.why} Read the connected tenant, cite the evidence, preview one bounded action, identify the approval owner, and provide verification and undo steps. Do not claim execution unless audit evidence confirms it.`;
   const nextUrl=`${AGENTS}/identity?case=${encodeURIComponent(prompt)}#run`;agentUrl=nextUrl;aiDirect.href=nextUrl;
